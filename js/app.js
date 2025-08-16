@@ -2,8 +2,39 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // ---------- Firebase services ----------
   const auth    = (window.fmb && window.fmb.auth)    || firebase.auth();
-  const db      = (window.fmb && window.fmb.db)      || firebase.firestore();
-  const storage = (window.fmb && window.fmb.storage) || firebase.storage();
+
+
+const analytics = getAnalytics(app);
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+// Firebase config
+
+  apiKey: "AIzaSyCZXbnzgWXqEeOTlPe56h-iEtX32kIsXqU",
+  authDomain: "find-my-buddy-2f4d7.firebaseapp.com",
+  projectId: "find-my-buddy-2f4d7",
+  storageBucket: "find-my-buddy-2f4d7.firebasestorage.app",
+  
+  appId: "1:463268034142:web:b53c112cf764dcf66766cf",
+  measurementId: "G-2LZB7EVTQV"
+};
+
+// Init Firebase (kun én gang)
+firebase.initializeApp(firebaseConfig);
+
+// Gør services klar til resten af koden
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+// Sørg for at brugeren er logget ind anonymt
+auth.signInAnonymously()
+  .then(() => {
+    console.log("Anonym login OK");
+  })
+  .catch((error) => {
+    console.error("Auth fejl:", error);
+    alert("Kunne ikke logge ind: " + error.message);
+  });
 
   // ---------- DOM ----------
   const groupIdInput     = document.getElementById('groupIdInput');
