@@ -1,12 +1,156 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Find My Buddy</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Find My Buddy</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#59d185" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Leaflet (kort) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin defer></script>
+
+  <!-- Firebase (compat til hurtig brug i browser) -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
+
+  <!-- Din Firebase init (med dine nøgler) -->
+  <script defer src="js/firebaseconfig.js"></script>
+
+  <!-- Sprog + App -->
+  <script defer src="js/i18n.js"></script>
+  <script defer src="js/app.js"></script>
 </head>
 <body>
-    <h1>Velkommen til Find My Buddy!</h1>
-    <p>Her kommer noget stort.</p>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand">
+      <!-- Brug dit app-ikon her -->
+      <img src="assets/icon-192.png" alt="Find My Buddy" />
+      <span data-i18n="app_name">Find My Buddy</span>
+    </div>
+
+    <div class="top-actions">
+      <div class="group">
+        <input id="groupIdInput" type="text" placeholder="Gruppe-ID" />
+        <button id="btnJoin" class="btn" data-i18n="join_or_create">Join / Opret</button>
+      </div>
+
+      <div class="name">
+        <input id="displayNameInput" type="text" placeholder="Dit navn" />
+        <button id="btnSaveName" class="btn" data-i18n="save">Gem</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Pil/kompas sektion -->
+    <section id="arrowSection" class="arrow-wrap">
+      <!-- Meta overlay (valg + afstand) -->
+      <div class="meta-bar">
+        <div class="row">
+          <strong data-i18n="pointing_at">Pejler mod:</strong>
+          <select id="buddySelect"></select>
+        </div>
+        <div class="row">
+          <strong data-i18n="distance">Afstand:</strong>
+          <span id="distanceLabel">– m</span>
+        </div>
+      </div>
+
+      <!-- Selve pilen som SVG (nålen roteres i JS) -->
+      <div id="arrowWrap">
+        <svg id="arrowSVG" viewBox="0 0 200 200" aria-hidden="true">
+          <!-- skygge/plate -->
+          <g opacity="0.15" transform="translate(2,6)">
+            <path d="M100,22 L126,110 L100,100 L74,110 Z" fill="#000"></path>
+          </g>
+          <!-- nål -->
+          <g id="needle">
+            <path d="M100,20 L130,120 L100,106 L70,120 Z" fill="#59d185"></path>
+            <path d="M100,20 L130,120 L100,106 L70,120 Z" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2"></path>
+            <circle cx="100" cy="100" r="4" fill="rgba(0,0,0,.25)"></circle>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Kort nederst (kan skjules i CSS hvis du vil) -->
+      <div id="map" class="map"></div>
+
+      <!-- Primære knapper -->
+      <div class="primary-actions">
+        <button id="btnFindCamp" class="btn pill" data-i18n="save_camp">Gem/opdatér Camp</button>
+        <button id="btnGoHome" class="btn pill" data-i18n="walk_home">Gå hjem sammen</button>
+
+        <!-- Foto-upload (kamera) -->
+        <label class="btn file pill">
+          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden />
+          <span data-i18n="take_photo">Tag billede</span>
+        </label>
+      </div>
+
+      <!-- Galleri -->
+      <div class="gallery card">
+        <div class="gallery-head">
+          <strong data-i18n="group_gallery">Gruppens galleri</strong>
+          <span id="galleryCount">0</span>
+        </div>
+        <div id="photoGrid" class="photo-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chat FAB-knap -->
+  <button id="chatFab" class="fab" aria-label="Åbn chat" data-i18n="chat">Chat</button>
+
+  <!-- Chat-bottom sheet (gennemsigtig over pilen) -->
+  <div id="chatSheet" class="sheet" aria-hidden="true">
+    <header class="sheet-header">
+      <strong data-i18n="chat">Chat</strong>
+
+      <!-- Boble-vælger -->
+      <div class="bubble-picker">
+        <button id="bubblePickerBtn" class="bubble-btn" title="Vælg boble">🙂</button>
+
+        <div id="bubblePalette" class="bubble-palette hidden" role="menu">
+          <button data-style="default">💬</button>
+          <button data-style="heart">❤️</button>
+          <button data-style="cloud">☁️</button>
+          <button data-style="fist">👊</button>
+          <button data-style="beer">🍺</button>
+          <button data-style="star">⭐</button>
+        </div>
+      </div>
+
+      <button id="chatClose" class="sheet-close" aria-label="Luk">✕</button>
+    </header>
+
+    <div id="sheetChatList" class="sheet-chat-list" aria-live="polite"></div>
+
+    <form id="sheetChatForm" class="sheet-chat-form">
+      <input id="sheetChatInput" type="text" placeholder="Skriv en besked…" required />
+      <button class="btn primary" type="submit" data-i18n="send">Send</button>
+    </form>
+
+    <div class="sheet-safe-area"></div>
+  </div>
+
+  <!-- Service worker (valgfrit at have også her – din app registrerer via JS) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    }
+  </script>
 </body>
 </html>
