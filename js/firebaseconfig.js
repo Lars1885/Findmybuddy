@@ -1,21 +1,21 @@
-// /js/firebaseconfig.js
+// js/firebaseconfig.js
 (function () {
   const firebaseConfig = {
-    apiKey: "AIzaSyCZxbnzgWQxQEeOIPEs6h-iEtX32k1sxQU",
+    apiKey: "AIzaSyCXzbnqHWgKEoEtP6eS6h-iEtXk32LsxQU",
     authDomain: "find-my-buddy-2f4d7.firebaseapp.com",
     projectId: "find-my-buddy-2f4d7",
-    storageBucket: "find-my-buddy-2f4d7.firebasestorage.app",
+    storageBucket: "find-my-buddy-2f4d7.appspot.com",
     messagingSenderId: "463268034142",
-    appId: "1:463268034142:web:b53c112cf764dcf66766cf",
-    measurementId: "G-2LZB7EVTQV"
+    appId: "1:463268034142:web:b53c112cf76d4cfc7666cf",
+    measurementId: "G-2LBZTEQVQV"
   };
 
-  // Init en gang (compat SDK)
-  if (!firebase.apps || !firebase.apps.length) {
+  // Tjek om Firebase allerede er initialiseret
+  if (firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
   }
 
-  // Gør services globale til appen
+  // Gør auth, db og storage tilgængeligt i appen
   window.fmb = {
     auth: firebase.auth(),
     db: firebase.firestore(),
