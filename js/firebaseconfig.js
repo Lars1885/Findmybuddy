@@ -1,16 +1,16 @@
-// js/firebaseconfig.js
+// /js/firebaseconfig.js
 (function () {
   const firebaseConfig = {
-    apiKey: "AIzaSyCZbxnhgzWqXqeE0IPe56h-iEtx32k1sxQU",
+    apiKey: "AIzaSyCZxbnzgWQxQEeOIPEs6h-iEtX32k1sxQU",
     authDomain: "find-my-buddy-2f4d7.firebaseapp.com",
     projectId: "find-my-buddy-2f4d7",
     storageBucket: "find-my-buddy-2f4d7.firebasestorage.app",
     messagingSenderId: "463268034142",
-    appId: "1:463268034142:web:b53c112cf764dcfc67666f",
+    appId: "1:463268034142:web:b53c112cf764dcf66766cf",
     measurementId: "G-2LZB7EVTQV"
   };
 
-  // Init én gang (compat SDK)
+  // Init en gang (compat SDK)
   if (!firebase.apps || !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   }
@@ -22,4 +22,3 @@
     storage: firebase.storage()
   };
 })();
-

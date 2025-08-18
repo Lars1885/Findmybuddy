@@ -27,16 +27,14 @@
   <!-- Din Firebase init (med dine nøgler) -->
   <script defer src="js/firebaseconfig.js"></script>
 
-  <!-- Sprog + App -->
+  <!-- sprog + app -->
   <script defer src="js/i18n.js"></script>
   <script defer src="js/app.js"></script>
 </head>
 <body>
-
   <!-- Topbar -->
   <header class="topbar">
     <div class="brand">
-      <!-- Brug dit app-ikon her -->
       <img src="assets/icon-192.png" alt="Find My Buddy" />
       <span data-i18n="app_name">Find My Buddy</span>
     </div>
@@ -46,7 +44,6 @@
         <input id="groupIdInput" type="text" placeholder="Gruppe-ID" />
         <button id="btnJoin" class="btn" data-i18n="join_or_create">Join / Opret</button>
       </div>
-
       <div class="name">
         <input id="displayNameInput" type="text" placeholder="Dit navn" />
         <button id="btnSaveName" class="btn" data-i18n="save">Gem</button>
@@ -57,7 +54,6 @@
   <main>
     <!-- Pil/kompas sektion -->
     <section id="arrowSection" class="arrow-wrap">
-      <!-- Meta overlay (valg + afstand) -->
       <div class="meta-bar">
         <div class="row">
           <strong data-i18n="pointing_at">Pejler mod:</strong>
@@ -72,85 +68,55 @@
       <!-- Selve pilen som SVG (nålen roteres i JS) -->
       <div id="arrowWrap">
         <svg id="arrowSVG" viewBox="0 0 200 200" aria-hidden="true">
-          <!-- skygge/plate -->
-          <g opacity="0.15" transform="translate(2,6)">
-            <path d="M100,22 L126,110 L100,100 L74,110 Z" fill="#000"></path>
-          </g>
-          <!-- nål -->
           <g id="needle">
-            <path d="M100,20 L130,120 L100,106 L70,120 Z" fill="#59d185"></path>
-            <path d="M100,20 L130,120 L100,106 L70,120 Z" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2"></path>
+            <path d="M100,22 L130,120 100,160 L70,120 Z" fill="#59d185"></path>
+            <path d="M100,20 L130,120 100,160 L70,120 Z" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2"></path>
             <circle cx="100" cy="100" r="4" fill="rgba(0,0,0,.25)"></circle>
           </g>
         </svg>
       </div>
-
-      <!-- Kort nederst (kan skjules i CSS hvis du vil) -->
-      <div id="map" class="map"></div>
-
-      <!-- Primære knapper -->
-      <div class="primary-actions">
-        <button id="btnFindCamp" class="btn pill" data-i18n="save_camp">Gem/opdatér Camp</button>
-        <button id="btnGoHome" class="btn pill" data-i18n="walk_home">Gå hjem sammen</button>
-
-        <!-- Foto-upload (kamera) -->
-        <label class="btn file pill">
-          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden />
-          <span data-i18n="take_photo">Tag billede</span>
-        </label>
-      </div>
-
-      <!-- Galleri -->
-      <div class="gallery card">
-        <div class="gallery-head">
-          <strong data-i18n="group_gallery">Gruppens galleri</strong>
-          <span id="galleryCount">0</span>
-        </div>
-        <div id="photoGrid" class="photo-grid"></div>
-      </div>
     </section>
+
+    <!-- Kort nederst (kan skjules i CSS hvis du vil) -->
+    <div id="map" class="map"></div>
+
+    <!-- Primære knapper -->
+    <div class="primary-actions">
+      <button id="btnFindCamp" class="btn pill" data-i18n="save_camp">Gem/opdatér Camp</button>
+      <button id="btnGoHome" class="btn pill" data-i18n="walk_home">Gå hjem sammen</button>
+      <label class="btn pill file">
+        <input id="photoInput" type="file" accept="image/*" capture="environment" hidden />
+        <span data-i18n="take_photo">Tag billede</span>
+      </label>
+    </div>
+
+    <!-- Galleri -->
+    <div class="gallery card">
+      <strong data-i18n="group_gallery">Gruppens galleri</strong>
+      <span id="galleryCount">0</span>
+      <div id="photoGrid" class="photo-grid"></div>
+    </div>
   </main>
 
-  <!-- Chat FAB-knap -->
+  <!-- Chat FAB + bottom sheet -->
   <button id="chatFab" class="fab" aria-label="Åbn chat" data-i18n="chat">Chat</button>
 
-  <!-- Chat-bottom sheet (gennemsigtig over pilen) -->
   <div id="chatSheet" class="sheet" aria-hidden="true">
     <header class="sheet-header">
       <strong data-i18n="chat">Chat</strong>
-
-      <!-- Boble-vælger -->
-      <div class="bubble-picker">
-        <button id="bubblePickerBtn" class="bubble-btn" title="Vælg boble">🙂</button>
-
-        <div id="bubblePalette" class="bubble-palette hidden" role="menu">
-          <button data-style="default">💬</button>
-          <button data-style="heart">❤️</button>
-          <button data-style="cloud">☁️</button>
-          <button data-style="fist">👊</button>
-          <button data-style="beer">🍺</button>
-          <button data-style="star">⭐</button>
-        </div>
-      </div>
-
-      <button id="chatClose" class="sheet-close" aria-label="Luk">✕</button>
+      <button id="chatClose" class="sheet-close" aria-label="Luk">×</button>
     </header>
-
     <div id="sheetChatList" class="sheet-chat-list" aria-live="polite"></div>
-
     <form id="sheetChatForm" class="sheet-chat-form">
       <input id="sheetChatInput" type="text" placeholder="Skriv en besked…" required />
       <button class="btn primary" type="submit" data-i18n="send">Send</button>
     </form>
-
     <div class="sheet-safe-area"></div>
   </div>
 
-  <!-- Service worker (valgfrit at have også her – din app registrerer via JS) -->
+  <!-- Service worker (valgfri – men din app registrerer via JS) -->
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(()=>{});
-    }
+    
   </script>
 </body>
 </html>
