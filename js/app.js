@@ -4,6 +4,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const auth    = window.fmb?.auth || firebase.auth();
   const db      = window.fmb?.db   || firebase.firestore();
   const storage = window.fmb?.storage || firebase.storage();
+// ----- Firebase services -----
+const auth = window.fmb?.auth || firebase.auth();
+const db = window.fmb?.db || firebase.firestore();
+const storage = window.fmb?.storage || firebase.storage();
+
+// Test: anonym login
+auth.signInAnonymously()
+  .then(() => {
+    const uid = auth.currentUser ? auth.currentUser.uid : "(ukendt)";
+    console.log("Anon login OK, uid:", uid);
+  })
+  .catch((e) => {
+    alert("Kunne ikke logge ind: " + (e.message || e));
+    console.error(e);
+  });
 
   // ----- DOM -----
   const groupIdInput     = document.getElementById('groupIdInput');

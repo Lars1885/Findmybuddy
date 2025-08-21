@@ -1,15 +1,16 @@
-// js/firebaseconfig.js
-
-// Din Firebase konfiguration
+// Din nye Firebase konfiguration
 const firebaseConfig = {
-  apiKey: "AIzaSyCXbnhzgWxqEoIPE56h-iEtx32klsxQU",
-  authDomain: "find-my-buddy-2f4d7.firebaseapp.com",
-  projectId: "find-my-buddy-2f4d7",
-  storageBucket: "find-my-buddy-2f4d7.appspot.com",
-  messagingSenderId: "463260834142",
-  appId: "1:463260834142:web:b53c112cf764d6cf6766cf",
-  measurementId: "G-2LZB7VETQV"
+  apiKey: "AIzaSyCfJSDJYf4_sZwZqNualbLa_qHZv4pPFMY",
+  authDomain: "find-my-buddy-2.firebaseapp.com",
+  projectId: "find-my-buddy-2",
+  storageBucket: "find-my-buddy-2.appspot.com",
+  messagingSenderId: "913962807255",
+  appId: "1:913962807255:web:810d9312386f97b12e2592",
+  measurementId: "G-4RS0KM5CWS"
 };
 
 // Initialiser Firebase
 firebase.initializeApp(firebaseConfig);
+
+// Hent Firebase Auth
+const auth = firebase.auth();

@@ -1,69 +1,31 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find My Buddy</title>
 
-  <!-- (valgfrit) manifest + icons hvis du bruger PWA -->
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png" />
+  <!-- Leaflet (kort, kun hvis du bruger kortvisning) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="css/style.css" />
-
-  <!-- Leaflet (kort) – behold kun hvis du bruger kortet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
-
-  <!-- Firebase compat (CDN) – RÆKKEFØLGEN er vigtig -->
+  <!-- Firebase compat (CDN) -->
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
 
-  <!-- Din Firebase config (med nøglerne) -->
+  <!-- Din Firebase config -->
   <script defer src="js/firebaseconfig.js"></script>
 
-  <!-- (valgfrit) i18n hvis du bruger det -->
+  <!-- (valgfrit) sprogfil -->
   <script defer src="js/i18n.js"></script>
 
   <!-- Din app-logik -->
   <script defer src="js/app.js"></script>
 </head>
 <body>
-  <!-- Topbar -->
-  <header class="topbar">
-    <div class="brand">
-      <img src="assets/icon-192.png" alt="Find My Buddy" />
-      <strong>Find My Buddy</strong>
-    </div>
-  </header>
-
-  <!-- Intro / tillidstekst -->
-  <p class="intro">
-    Vi sporer dig ikke. Din position og billeder bruges kun i din gruppe.
-    Billeder slettes automatisk efter 30 dage.
-  </p>
-
-  <!-- Din eksisterende markup (inputs/knapper/pil/galeri/chat) kan blive herunder -->
-  <main id="app">
-    <!-- Behold dine nuværende sektioner; jeg viser kun et minimumsfelt: -->
-    <div class="group">
-      <input id="groupIdInput" type="text" placeholder="Gruppe-ID" />
-      <button id="btnJoin" class="btn">Join / Opret</button>
-    </div>
-
-    <div class="name">
-      <input id="displayNameInput" type="text" placeholder="Dit navn" />
-      <button id="btnSaveName" class="btn">Gem</button>
-    </div>
-
-    <!-- Her kan pilen/kortet/galeriet og chatten ligge som du har i din app -->
-    <div id="arrowSection" class="arrow-wrap"></div>
-    <div id="map" class="map"></div>
-    <div id="photoGrid" class="photo-grid"></div>
-  </main>
+  <h1>Find My Buddy 🚀</h1>
+  <div id="map" style="height:400px;"></div>
 </body>
 </html>
