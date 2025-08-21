@@ -4,62 +4,65 @@
   --text:#e7f6ff;
   --muted:#a8c3cf;
   --primary:#59d185;
+  --accent:#2fb07a;
 }
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
 body{
-  margin:0; background:var(--bg); color:var(--text);
+  margin:0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .topbar{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:16px; padding:12px 16px; background:#0f2a35; border-bottom:1px solid #123241;
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px; background:#0f2a35; border-bottom:1px solid #133141;
 }
-.brand{ display:flex; align-items:center; gap:12px; }
-.logo{ width:30px; height:30px; border-radius:8px; background:var(--primary); }
+.brand{ display:flex; align-items:center; gap:8px; }
+.brand img{ width:32px; height:32px; border-radius:8px; }
+.intro{ margin:0 0 0 auto; color:var(--muted); font-size:14px; max-width:700px; }
 
-.setup .row{ display:flex; gap:8px; flex-wrap:wrap; }
+main{ padding:16px; max-width:1100px; margin:0 auto; display:grid; gap:16px; }
+.card{
+  background:var(--card);
+  border:1px solid #173747;
+  border-radius:16px;
+  padding:12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.22);
+}
+.row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
 input{
   padding:10px 12px; border-radius:10px; border:1px solid #1b3f51;
   background:#0d1e27; color:var(--text); min-width:220px;
 }
 input::placeholder{ color:#6e8a98; }
+select{
+  padding:8px 10px; border-radius:10px; border:1px solid #1b3f51;
+  background:#0d1e27; color:var(--text);
+}
 .btn{
-  padding:10px 14px; border:1px solid #1b3f51; background:#103141; color:var(--text);
+  padding:10px 14px; border:1px solid #1b3f51;
+  background:#103141; color:var(--text);
   border-radius:10px; cursor:pointer;
 }
 .btn:hover{ background:#153b4c; }
-.btn.primary{ background:var(--primary); color:#05271e; border-color:#22654f; }
+.btn.primary{ background:var(--primary); color:#02231a; border-color:#1f5a44; font-weight:700; }
 .btn.pill{ border-radius:999px; }
-.btn.subtle{ opacity:.8; }
-.btn.file{ display:inline-flex; align-items:center; }
-
-main{ padding:16px; max-width:1100px; margin:0 auto; display:grid; gap:16px; }
-
-.card{
-  background:var(--card); border:1px solid #163445; border-radius:16px; padding:12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.22);
-}
+.btn.subtle{ opacity:.85; }
 
 .arrow-card{ padding:0; overflow:hidden; }
-.meta{
-  display:flex; justify-content:space-between; gap:10px;
-  padding:10px 12px; border-bottom:1px solid #163445; background:#0e2230;
-}
-.arrow-wrap{
-  display:flex; align-items:center; justify-content:center; padding:10px 0 14px;
-}
+.meta-bar{ display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid #163445; background:#0e2230; }
+#arrowWrap{ display:flex; justify-content:center; align-items:center; padding:12px 0 16px; }
 #arrowSVG{ width:260px; height:260px; }
-#needle{ transform-origin:100px 100px; transition: transform .18s ease-out; }
+#needle{ transform-origin: 100px 100px; transition: transform .18s ease-out; }
 
-.map{ width:100%; height:300px; border-radius:12px; overflow:hidden; }
+.map{ width:100%; height:320px; border-radius:12px; overflow:hidden; }
 
 .gallery-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
 .photo-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap:8px; }
 .photo-grid img{ width:100%; height:120px; object-fit:cover; border-radius:10px; border:1px solid #1b3f51; }
-.muted{ color:var(--muted); font-size:12px; }
 
 .chat-head{ margin-bottom:6px; }
 .chat-list{ display:flex; flex-direction:column; gap:6px; max-height:240px; overflow:auto; padding:8px; background:#0e2230; border-radius:10px; border:1px solid #163445; }
@@ -67,3 +70,5 @@ main{ padding:16px; max-width:1100px; margin:0 auto; display:grid; gap:16px; }
 .me{ background:#153b4c; margin-left:auto; }
 .them{ background:#123241; }
 .chat-form{ display:flex; gap:8px; margin-top:8px; }
+
+.muted{ color:var(--muted); font-size:12px; }

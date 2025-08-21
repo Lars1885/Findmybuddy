@@ -1,108 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Find My Buddy</title>
 
+  <!-- (valgfrit) manifest + icons hvis du bruger PWA -->
   <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="theme-color" content="#59d185" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png" />
 
+  <!-- Styles -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- Leaflet (kort) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
-  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+  <!-- Leaflet (kort) – behold kun hvis du bruger kortet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
 
-  <!-- Firebase compat CDN -->
+  <!-- Firebase compat (CDN) – RÆKKEFØLGEN er vigtig -->
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
 
-  <!-- Din Firebase init -->
+  <!-- Din Firebase config (med nøglerne) -->
   <script defer src="js/firebaseconfig.js"></script>
 
-  <!-- App -->
+  <!-- (valgfrit) i18n hvis du bruger det -->
+  <script defer src="js/i18n.js"></script>
+
+  <!-- Din app-logik -->
   <script defer src="js/app.js"></script>
 </head>
 <body>
+  <!-- Topbar -->
   <header class="topbar">
     <div class="brand">
-      <div class="logo"></div>
+      <img src="assets/icon-192.png" alt="Find My Buddy" />
       <strong>Find My Buddy</strong>
-    </div>
-
-    <div class="setup">
-      <div class="row">
-        <input id="groupIdInput" type="text" placeholder="Gruppe-ID (fx Festival2025)" />
-        <button id="btnJoin" class="btn">Join / Opret</button>
-      </div>
-      <div class="row">
-        <input id="displayNameInput" type="text" placeholder="Dit navn" />
-        <button id="btnSaveName" class="btn">Gem</button>
-      </div>
     </div>
   </header>
 
-  <main>
-    <!-- Pil/kompas -->
-    <section class="card arrow-card">
-      <div class="meta">
-        <div><strong>Pejler mod:</strong> <select id="buddySelect"></select></div>
-        <div><strong>Afstand:</strong> <span id="distanceLabel">– m</span></div>
-      </div>
+  <!-- Intro / tillidstekst -->
+  <p class="intro">
+    Vi sporer dig ikke. Din position og billeder bruges kun i din gruppe.
+    Billeder slettes automatisk efter 30 dage.
+  </p>
 
-      <div class="arrow-wrap">
-        <!-- Stor, tydelig pil som vi roterer i JS -->
-        <svg id="arrowSVG" viewBox="0 0 200 200" aria-hidden="true">
-          <!-- diskret skygge -->
-          <g opacity="0.15" transform="translate(2,6)">
-            <path d="M100,22 L130,120 100,160 L70,120 Z" fill="#000"></path>
-          </g>
-          <!-- nål -->
-          <g id="needle">
-            <path d="M100,18 L132,118 100,158 68,118 Z" fill="#59d185"></path>
-            <path d="M100,18 L132,118 100,158 68,118 Z" fill="none" stroke="rgba(0,0,0,.22)" stroke-width="2"></path>
-            <circle cx="100" cy="100" r="4" fill="rgba(0,0,0,.28)"></circle>
-          </g>
-        </svg>
-      </div>
-    </section>
+  <!-- Din eksisterende markup (inputs/knapper/pil/galeri/chat) kan blive herunder -->
+  <main id="app">
+    <!-- Behold dine nuværende sektioner; jeg viser kun et minimumsfelt: -->
+    <div class="group">
+      <input id="groupIdInput" type="text" placeholder="Gruppe-ID" />
+      <button id="btnJoin" class="btn">Join / Opret</button>
+    </div>
 
-    <!-- Kort + mødested -->
-    <section class="card">
-      <div class="row">
-        <button id="btnSetMeeting" class="btn pill">Gem dette sted som mødested (del med gruppen)</button>
-        <button id="btnClearMeeting" class="btn pill subtle">Fjern mødested</button>
-      </div>
-      <div id="map" class="map"></div>
-    </section>
+    <div class="name">
+      <input id="displayNameInput" type="text" placeholder="Dit navn" />
+      <button id="btnSaveName" class="btn">Gem</button>
+    </div>
 
-    <!-- Galleri (30 dages politik håndhæver vi senere på server/cron) -->
-    <section class="card">
-      <div class="gallery-head">
-        <strong>Gruppens galleri</strong>
-        <label class="btn file">
-          <input id="photoInput" type="file" accept="image/*" capture="environment" hidden />
-          <span>Tilføj billede</span>
-        </label>
-      </div>
-      <div id="photoGrid" class="photo-grid"></div>
-      <small class="muted">Billeder slettes automatisk efter 30 dage.</small>
-    </section>
-
-    <!-- Chat -->
-    <section class="card">
-      <div class="chat-head">
-        <strong>Chat</strong>
-      </div>
-      <div id="chatList" class="chat-list" aria-live="polite"></div>
-      <form id="chatForm" class="chat-form">
-        <input id="chatInput" type="text" placeholder="Skriv en besked…" required />
-        <button class="btn primary" type="submit">Send</button>
-      </form>
-    </section>
+    <!-- Her kan pilen/kortet/galeriet og chatten ligge som du har i din app -->
+    <div id="arrowSection" class="arrow-wrap"></div>
+    <div id="map" class="map"></div>
+    <div id="photoGrid" class="photo-grid"></div>
   </main>
 </body>
 </html>
