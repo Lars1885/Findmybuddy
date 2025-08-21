@@ -5,9 +5,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const db      = window.fmb?.db   || firebase.firestore();
   const storage = window.fmb?.storage || firebase.storage();
 // ----- Firebase services -----
-const auth = window.fmb?.auth || firebase.auth();
-const db = window.fmb?.db || firebase.firestore();
-const storage = window.fmb?.storage || firebase.storage();
 
 // Test: anonym login
 auth.signInAnonymously()
