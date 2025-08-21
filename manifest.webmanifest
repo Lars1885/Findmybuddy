@@ -1,13 +1,9 @@
 {
   "name": "Find My Buddy",
-  "short_name": "Buddy",
+  "short_name": "FMBuddy",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0e2a33",
+  "background_color": "#0b1921",
   "theme_color": "#59d185",
-  "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" },
-    { "src": "assets/favicon-32.png", "sizes": "32x32", "type": "image/png" }
-  ]
+  "icons": []
 }
