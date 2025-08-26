@@ -1,126 +1,155 @@
 // js/app.js — anonym login + Leaflet-kort + live position + grupper
 document.addEventListener('DOMContentLoaded', async () => {
-  // Firebase services (sat i js/firebaseconfig.js)
-  const auth = window.fmb?.auth || firebase.auth();
-  const db   = window.fmb?.db   || firebase.firestore();
+  // Firebase services
 
-  // UI
+  // DOM
+  // Firebase services
+const auth = window.fmb.auth;
+const db   = window.fmb.db;
+// Firebase services
+// ---- ANONYM LOGIN (skal ske før vi bruger db) ----
+try {
+  if (!auth.currentUser) {
+    await auth.signInAnonymously();
+  }
+} catch (e) {
+  alert('Kunne ikke logge ind: ' + e.message);
+  return; // stop hvis login fejler
+}
+// ---------------------------------------------------
+
   const groupIdInput     = document.getElementById('groupIdInput');
   const btnJoin          = document.getElementById('btnJoin');
   const displayNameInput = document.getElementById('displayNameInput');
   const btnSaveName      = document.getElementById('btnSaveName');
-  const out              = document.getElementById('out');
+  const statusEl         = document.getElementById('status');
   const membersEl        = document.getElementById('members');
 
-  const on = (el, evt, fn) => el && el.addEventListener(evt, fn);
-
-  // State
+  // App-state
   let uid = null;
-  let myName = localStorage.getItem('fmb_name') || '';
   let currentGroupId = localStorage.getItem('fmb_group') || '';
-  let unsubPeers = null;
-  let firstFix = true;
-  const peerMarkers = {};
+  let myName = localStorage.getItem('fmb_name') || '';
+  let unsubMembers = null;
+  let watchId = null;
+  let firstCenter = false;
 
-  if (!displayNameInput.value) displayNameInput.value = myName;
-  if (!groupIdInput.value) groupIdInput.value = currentGroupId;
+  groupIdInput.value = currentGroupId || 'Test123';
+  displayNameInput.value = myName;
 
-  // 1) Anonym login
+  const setStatus = (msg) => statusEl.textContent = msg;
+
+  // Leaflet kort
+  const map = L.map('map', { zoomControl: true, attributionControl: false })
+               .setView([56.0, 10.0], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
+
+  const markers = new Map(); // uid -> marker
+  const setMarker = (id, lat, lng, label) => {
+    let m = markers.get(id);
+    if (!m) {
+      m = L.marker([lat, lng]).addTo(map);
+      markers.set(id, m);
+    }
+    m.setLatLng([lat, lng]).bindPopup(label || id);
+  };
+  const removeMissingMarkers = (presentIds) => {
+    for (const [id, m] of markers.entries()) {
+      if (!presentIds.has(id)) {
+        map.removeLayer(m);
+        markers.delete(id);
+      }
+    }
+  };
+
+  // Join/opret gruppe
+  async function joinGroup(id) {
+    if (!id) { alert('Skriv et gruppe-id'); return; }
+    if (unsubMembers) { unsubMembers(); unsubMembers = null; }
+    currentGroupId = id;
+    localStorage.setItem('fmb_group', id);
+    setStatus(`Forbinder til gruppe “${id}”…`);
+
+    // Opret dokumentet hvis det ikke findes
+    await db.collection('groups').doc(id)
+      .set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+
+    // Lyt på medlemmer (subcollection)
+    const colRef = db.collection('groups').doc(id).collection('members');
+    unsubMembers = colRef.onSnapshot((snap) => {
+      const present = new Set();
+      const lines = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        present.add(doc.id);
+        if (d.lat != null && d.lng != null) {
+          setMarker(doc.id, d.lat, d.lng, d.name || 'Ukendt');
+        }
+        const t = d.ts?.toDate ? d.ts.toDate() : (d.ts ? new Date(d.ts) : null);
+        const when = t ? t.toLocaleTimeString() : '—';
+        lines.push(`<span class="pill">${(d.name||'Ukendt')} • ${when}</span>`);
+      });
+      removeMissingMarkers(present);
+      membersEl.innerHTML = lines.join(' ') || 'Ingen i gruppen endnu…';
+      setStatus(`Forbundet til “${id}”.`);
+    });
+
+    // Push min aktuelle navn ind i gruppen
+    if (uid) await upsertSelf(lastLatLng.lat, lastLatLng.lng);
+  }
+
+  // Gem navn
+  btnSaveName.addEventListener('click', async () => {
+    myName = displayNameInput.value.trim();
+    localStorage.setItem('fmb_name', myName);
+    setStatus('Navn gemt.');
+    if (uid && currentGroupId && lastLatLng.lat != null) {
+      await upsertSelf(lastLatLng.lat, lastLatLng.lng);
+    }
+  });
+
+  // Join klik
+  btnJoin.addEventListener('click', () => joinGroup(groupIdInput.value.trim()));
+
+  // Anonym login
   try {
-    await auth.signInAnonymously();
-    uid = auth.currentUser?.uid || null;
-    out.textContent = `Anon login OK, uid: ${uid || '(ukendt)'}`;
+    const cred = await auth.signInAnonymously();
+    uid = cred.user.uid;
+    setStatus('Login OK.');
   } catch (e) {
     alert('Kunne ikke logge ind: ' + (e.message || e));
-    console.error(e);
     return;
   }
 
-  // 2) Leaflet-kort
-  let map = L.map('map', { zoomControl: true, attributionControl: true }).setView([56.0, 10.0], 7);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-  let meMarker = L.marker([56.0, 10.0]).addTo(map).bindPopup('Mig');
-
-  // 3) Gem/skift navn
-  on(btnSaveName, 'click', () => {
-    myName = (displayNameInput.value || '').trim() || 'Anon';
-    localStorage.setItem('fmb_name', myName);
-    out.textContent = `Navn gemt: ${myName}`;
-  });
-
-  // 4) Join / Opret gruppe
-  async function joinGroup(id) {
-    const gid = (id || groupIdInput.value || '').trim();
-    if (!gid) { alert('Skriv en Gruppe-ID'); return; }
-    if (unsubPeers) { unsubPeers(); unsubPeers = null; }
-    currentGroupId = gid;
-    localStorage.setItem('fmb_group', currentGroupId);
-    out.textContent = `Gruppe: ${currentGroupId}`;
-
-    // Opret gruppe-dokument (idempotent)
+  // Geolocation → skriv min position i Firestore
+  let lastLatLng = { lat: null, lng: null };
+  const upsertSelf = async (lat, lng) => {
+    if (!currentGroupId) return;
     await db.collection('groups').doc(currentGroupId)
-      .set({ createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      .collection('members').doc(uid)
+      .set({
+        name: myName || 'Ukendt',
+        lat, lng,
+        ts: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+  };
 
-    // Tilføj/merge mig som medlem
-    await db.collection('groups').doc(currentGroupId).collection('users').doc(uid)
-      .set({ name: myName || 'Anon', joinedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-
-    // Lyt på andre brugere
-    unsubPeers = db.collection('groups').doc(currentGroupId).collection('users')
-      .onSnapshot(snap => {
-        membersEl.innerHTML = '';
-        snap.forEach(doc => {
-          const d = doc.data() || {};
-          const id = doc.id;
-          const label = id === uid ? ((d.name || 'Mig') + ' (mig)') : (d.name || id.slice(0,6));
-
-          // vis badges
-          const span = document.createElement('span');
-          span.style.cssText = 'display:inline-block;background:#1e293b;color:#93c5fd;border-radius:999px;padding:4px 10px;margin:2px 4px;font-size:14px;';
-          span.textContent = label;
-          membersEl.appendChild(span);
-
-          // tegn/uddatér markør
-          if (typeof d.lat === 'number' && typeof d.lng === 'number') {
-            if (!peerMarkers[id]) {
-              peerMarkers[id] = L.marker([d.lat, d.lng]).addTo(map).bindPopup(label);
-            } else {
-              peerMarkers[id].setLatLng([d.lat, d.lng]).setPopupContent(label);
-            }
-          }
-        });
-      }, err => {
-        console.error('Snapshot fejl', err);
-        out.textContent = 'Snapshot fejl: ' + (err.message || err);
-      });
-  }
-  on(btnJoin, 'click', () => joinGroup());
-  if (currentGroupId) joinGroup(currentGroupId);
-
-  // 5) GPS: opdatér min position løbende
-  if ('geolocation' in navigator) {
-    navigator.geolocation.watchPosition(async (pos) => {
-      const { latitude: lat, longitude: lng, heading } = pos.coords;
-
-      meMarker.setLatLng([lat, lng]).setPopupContent(myName || 'Mig');
-      if (firstFix) { map.setView([lat, lng], 15); firstFix = false; }
-
-      if (currentGroupId && uid) {
-        await db.collection('groups').doc(currentGroupId).collection('users').doc(uid)
-          .set({
-            name: myName || 'Anon',
-            lat, lng,
-            heading: (typeof heading === 'number' ? heading : null),
-            ts: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-      }
-    }, err => {
-      console.error('GPS fejl:', err);
-      alert('Giv tilladelse til lokation i din browser for at vise din position.');
-    }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+  if ("geolocation" in navigator) {
+    watchId = navigator.geolocation.watchPosition(async (pos) => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      lastLatLng = { lat, lng };
+      setMarker(uid || 'mig', lat, lng, (myName || 'Mig'));
+      if (!firstCenter) { map.setView([lat, lng], 15); firstCenter = true; }
+      await upsertSelf(lat, lng);
+    }, (err) => {
+      console.warn('Geolocation fejl:', err);
+      setStatus('Position ikke delt (afvist eller fejl).');
+    }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
   } else {
-    alert('Denne browser understøtter ikke geolocation.');
+    setStatus('Din browser understøtter ikke geolocation.');
   }
 
-  window.addEventListener('beforeunload', () => { if (unsubPeers) unsubPeers(); });
+  // Auto-join hvis der står noget i feltet
+  if (groupIdInput.value.trim()) joinGroup(groupIdInput.value.trim());
 });
