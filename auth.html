@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auth test</title>
+  <style>
+    body { font-family: system-ui, Arial; background:#111; color:#eee; padding:24px }
+    .card { background:#1b1b1b; border:1px solid #333; border-radius:10px; padding:16px; max-width:700px }
+    .row { margin: 8px 0; }
+    code { background:#222; padding:2px 6px; border-radius:6px }
+  </style>
+
+  <!-- Firebase compat (rækkefølge er vigtig) -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <div class="card">
+    <h1>Auth test</h1>
+    <div class="row">Status: <span id="status">🔄 Logger ind…</span></div>
+    <div class="row">Debug: <code id="dbg">venter…</code></div>
+  </div>
+
+  <script>
+    // 👇 INDSÆT *PRÆCIS* dine nøgler fra Firebase (CDN-udgaven)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfJ5JDYF4_sZwZqNuaIbLA_qHZv4pPFMY",
+      authDomain: "find-my-buddy-2.firebaseapp.com",
+      projectId: "find-my-buddy-2",
+      storageBucket: "find-my-buddy-2.appspot.com",
+      messagingSenderId: "913962807255",
+      appId: "1:913962807255:web:81d0912386f97b12e2592",
+      measurementId: "G-4RS0KM5CWS"
+    };
+
+    const S = t => document.getElementById('status').textContent = t;
+    const D = t => document.getElementById('dbg').textContent = t;
+
+    window.addEventListener('load', async () => {
+      try {
+        D('loader ok; firebase=' + typeof firebase);
+        firebase.initializeApp(firebaseConfig);
+        D('apps: ' + firebase.apps.length);
+        await firebase.auth().signInAnonymously();
+        const u = firebase.auth().currentUser;
+        S('✅ Anonymt logget ind (uid: ' + (u && u.uid.slice(0,8)) + '…)');
+        D('login ok');
+      } catch (err) {
+        console.error(err);
+        S('❌ ' + err.code);
+        D(err.message);
+      }
+    });
+  </script>
+</body>
+</html>
