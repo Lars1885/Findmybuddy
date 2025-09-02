@@ -1,692 +1,412 @@
-<!-- =========================================================
- FIND MY BUDDY — FULL CODE DROP (WEB)
- Structure to create in your GitHub repo root:
-
- FindMyBuddy/
- ├─ index.html
- ├─ style.css
- ├─ script.js
- ├─ firebase.js
- ├─ arrow.svg
- ├─ chat/
- │   ├─ chat.html
- │   ├─ chat.css
- │   └─ chat.js
- ├─ camera/
- │   ├─ camera.html
- │   ├─ camera.css
- │   └─ camera.js
- ├─ group/
- │   ├─ group.html
- │   └─ group.js
- ├─ camp/
- │   ├─ camp.html
- │   └─ camp.js
- └─ assets/
-     └─ (optional images/icons)
-
- Notes:
- - Uses Firebase Firestore (no storage). Paste your web config in firebase.js.
- - Location + bearing shared in Firestore under groups/{group}/members/{user}.
- - Chat messages stored in groups/{group}/messages (style_id carries bubble style).
- - Camera stores media locally (IndexedDB) and posts a metadata notice in chat for others to request.
- - Auto-delete: images after 30 days, videos after 7 days (client-side purge on load).
- - No ads. Chat is for Premium; in this demo it’s enabled (you can gate it).
- ========================================================= -->
-
-<!-- ==================================
- File: index.html (root)
-================================== -->
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Find My Buddy</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Find My Buddy 🚀</title>
+
+  <style>
+    body{font-family:Arial,system-ui,-apple-system,Segoe UI,Roboto;
+         background:#111;color:#eee;margin:0}
+    header{padding:12px 16px;background:#0b2230;color:#fff}
+    main{padding:12px 16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+    input{padding:8px 10px;border:1px solid #2b4453;border-radius:6px;background:#0f2a38;color:#e9f3fb}
+    input::placeholder{color:#8bb2c7}
+    button{padding:8px 10px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer}
+    button:hover{opacity:.9}
+    #out{min-height:28px;padding:6px 8px;background:#0c1b24;border:1px solid #1b2d3a;border-radius:8px}
+    #map{height:320px;border:1px solid #2e5e7b;border-radius:8px;margin:10px 0}
+    .tag{background:#0f2a38;border:1px solid #1b2d3a;border-radius:999px;padding:4px 10px}
+    #members > div{padding:4px 0;border-bottom:1px solid #1b2d3a}
+    h3{margin:16px 0 8px 0}
+  </style>
+
+  <!-- Leaflet (kort) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
+  <!-- Firebase (compat) – rækkefølgen er vigtig -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="app-container">
-    <header class="topbar">
-      <h1 class="brand">Find My Buddy</h1>
-      <nav class="nav">
-        <a href="chat/chat.html">💬 Chat</a>
-        <a href="camera/camera.html">📷 Kamera</a>
-        <a href="group/group.html">👥 Gruppe</a>
-        <a href="camp/camp.html">🏕️ Camp</a>
-      </nav>
-    </header>
+  <header><h1 style="margin:0">Find My Buddy 🚀</h1></header>
 
-    <section id="setup" class="card">
-      <h2>Start</h2>
-      <div class="row">
-        <input id="username" placeholder="Dit navn" autocomplete="nickname" />
-        <input id="groupname" placeholder="Gruppekode (fx 7K9X)" autocapitalize="characters" />
-        <button id="btnJoin" class="primary">Tilslut</button>
-      </div>
-      <p class="hint">Del denne URL med din makker når I har sat <em>Gruppekode</em>.</p>
-    </section>
-
-    <section id="main" class="card hidden">
-      <div class="arrow-wrap">
-        <!-- Neon red arrow SVG -->
-        <svg id="arrow" class="arrow" viewBox="0 0 200 200" aria-hidden="true">
-          <defs>
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="6" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <g transform="translate(100,100)">
-            <path d="M 0 -90 L 26 50 L 0 30 L -26 50 Z" fill="#ff0a28" filter="url(#glow)"/>
-          </g>
-        </svg>
-      </div>
-      <div id="distance" class="distance">— <span class="units">meter</span></div>
-      <div class="controls">
-        <button id="btnCompass" class="ghost">Aktivér kompas</button>
-        <button id="btnGPS" class="ghost">Aktivér GPS</button>
-      </div>
-      <div class="row">
-        <select id="buddySelect" class="hidden"></select>
-      </div>
-      <div id="status" class="status">Klar.</div>
-    </section>
-  </div>
-
-  <script type="module" src="js/firebaseconfig.js"></script>
-<script type="module" src="js/app.js"></script>
-
-</body>
-</html>
-
-
-/* ==================================
- File: style.css (root)
-================================== */
-:root{
-  --bg:#000; --fg:#fff; --muted:#9aa0a6; --card:#0d0f12; --accent:#ff0a28; --glow:#ff5c72;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--fg); -webkit-font-smoothing:antialiased}
-.app-container{max-width:900px; margin:0 auto; padding:16px}
-.topbar{display:flex; align-items:center; justify-content:space-between; gap:12px}
-.brand{margin:0; font-size:24px}
-.nav a{color:#fff; text-decoration:none; margin-left:12px; background:#111; padding:8px 10px; border-radius:10px; border:1px solid #222}
-.card{background:var(--card); border:1px solid #17191d; border-radius:16px; padding:16px; margin-top:16px}
-.row{display:flex; gap:8px; flex-wrap:wrap}
-input,button,select{appearance:none; -webkit-appearance:none; background:#0b0d10; color:#e8eaed; border:1px solid #262a30; padding:12px 14px; border-radius:12px; font-size:16px}
-button.primary{background:var(--accent); border:none; color:#fff; box-shadow:0 0 18px var(--accent), 0 0 4px var(--glow); font-weight:700}
-button.ghost{background:#0b0d10}
-.hidden{display:none!important}
-.status{font-size:14px; color:var(--muted); margin-top:8px}
-.arrow-wrap{display:flex; align-items:center; justify-content:center; width:min(80vw,420px); height:min(80vw,420px); margin:8px auto}
-.arrow{width:80%; max-width:300px; filter:drop-shadow(0 0 20px var(--accent)) drop-shadow(0 0 6px var(--glow)); transition:transform .18s ease}
-.distance{font-size: clamp(22px, 6vw, 40px); font-weight:800; text-align:center}
-.units{font-weight:600; color:#ddd}
-.controls{display:flex; gap:8px; justify-content:center; margin:8px 0}
-
-
-// ==================================
-// File: firebase.js (root)
-// Paste your Firebase web config below. Keep Firestore rules locked down.
-// ==================================
-window.FMB = window.FMB || {}; // global namespace
-FMB.config = {
-  firebase: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
-  }
-};
-
-(function(){
-  if (!FMB.config.firebase.apiKey) { console.warn('[Firebase] Missing config. Realtime features disabled until you add keys.'); return; }
-  firebase.initializeApp(FMB.config.firebase);
-  FMB.db = firebase.firestore();
-})();
-
-
-// ==================================
-// File: script.js (root) — Arrow, GPS, Bearing, Firestore sync
-// ==================================
-(function(){
-  const $ = s => document.querySelector(s);
-  const statusEl = $('#status');
-  const distanceEl = $('#distance');
-  const arrowEl = $('#arrow');
-  const buddySelect = $('#buddySelect');
-  const btnJoin = $('#btnJoin');
-  const btnGPS = $('#btnGPS');
-  const btnCompass = $('#btnCompass');
-
-  const usernameEl = $('#username');
-  const groupnameEl = $('#groupname');
-
-  let my = { id: rid(), name:'', group:'', lat:null, lon:null, heading:null, last:0 };
-  let buddies = new Map();
-  let unsubGroup = null;
-  let geoWatchId = null;
-
-  // URL params autofill
-  const p = new URLSearchParams(location.search);
-  if (p.get('name')) usernameEl.value = p.get('name');
-  if (p.get('group')) groupnameEl.value = p.get('group');
-
-  btnJoin?.addEventListener('click', joinGroup);
-  btnGPS?.addEventListener('click', startGPS);
-  btnCompass?.addEventListener('click', enableCompass);
-  buddySelect?.addEventListener('change', renderArrow);
-
-  setStatus('Indtast navn og gruppekode. Aktiver GPS og kompas.');
-
-  function rid(){ return Math.random().toString(36).slice(2,10); }
-  function setStatus(msg){ if (statusEl){ statusEl.textContent = msg; } }
-
-  // Haversine meters
-  function haversine(lat1, lon1, lat2, lon2){
-    const R=6371000; const toRad=d=>d*Math.PI/180;
-    const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
-    const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-    return 2*R*Math.asin(Math.sqrt(a));
-  }
-  // Bearing A->B degrees from North
-  function bearing(lat1, lon1, lat2, lon2){
-    const toRad=d=>d*Math.PI/180, toDeg=r=>r*180/Math.PI;
-    const dLon=toRad(lon2-lon1);
-    const y=Math.sin(dLon)*Math.cos(toRad(lat2));
-    const x=Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) - Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(dLon);
-    return (toDeg(Math.atan2(y,x)) + 360) % 360;
-  }
-  function fmtDist(m){ if(!isFinite(m)) return '—'; return m<1000? `${Math.round(m)} <span class="units">meter</span>` : `${(m/1000).toFixed(2)} <span class="units">km</span>`; }
-  function norm(a){ a%=360; if(a<0)a+=360; return a; }
-
-  async function joinGroup(){
-    my.name = (usernameEl.value||'Makker').trim();
-    my.group = (groupnameEl.value||'').trim().toUpperCase();
-    if (!my.group){ alert('Skriv en gruppekode'); return; }
-    $('#setup')?.classList.add('hidden');
-    $('#main')?.classList.remove('hidden');
-
-    if (!window.FMB || !FMB.db){ setStatus('Gruppe sat lokalt. Tilføj Firebase config for realtime.'); return; }
-
-    await myDoc().set({ name: my.name, last: Date.now() }, { merge:true });
-    subscribeGroup();
-    setStatus(`Tilsluttet gruppe ${my.group}. Del linket ?group=${my.group}&name=${encodeURIComponent(my.name)}`);
-  }
-
-  function myDoc(){ return FMB.db.collection('groups').doc(my.group).collection('members').doc(my.id); }
-
-  function subscribeGroup(){
-    if (!FMB.db) return;
-    const col = FMB.db.collection('groups').doc(my.group).collection('members');
-    unsubGroup = col.onSnapshot(snap=>{
-      buddies.clear();
-      snap.forEach(doc=>{ if(doc.id!==my.id) buddies.set(doc.id,{id:doc.id, ...doc.data()}); });
-      rebuildBuddySelect();
-      renderArrow();
-    });
-  }
-
-  function rebuildBuddySelect(){
-    if (!buddySelect) return;
-    buddySelect.innerHTML='';
-    const list=[...buddies.values()].sort((a,b)=>b.last-a.last);
-    if (list.length===0){ buddySelect.classList.add('hidden'); setStatus('Venter på makker… Tilslut en anden telefon til samme gruppe.'); return; }
-    list.forEach(b=>{ const o=document.createElement('option'); o.value=b.id; o.textContent=`${b.name||'Makker'} · ${timeAgo(b.last)}`; buddySelect.appendChild(o); });
-    buddySelect.classList.remove('hidden');
-  }
-  function timeAgo(ts){ const s=Math.floor((Date.now()-ts)/1000); if(s<60)return s+'s'; const m=(s/60)|0; if(m<60)return m+'m'; const h=(m/60)|0; return h+'t'; }
-
-  async function startGPS(){
-    if (!('geolocation' in navigator)){ setStatus('Din browser understøtter ikke GPS.'); return; }
-    if (geoWatchId!=null) navigator.geolocation.clearWatch(geoWatchId);
-    geoWatchId = navigator.geolocation.watchPosition(pos=>{
-      my.lat=pos.coords.latitude; my.lon=pos.coords.longitude; my.last=Date.now();
-      renderArrow(); maybePush();
-    }, err=> setStatus('GPS-fejl: '+err.message), { enableHighAccuracy:true, maximumAge:1000, timeout:15000 });
-    setStatus('GPS aktiveret.');
-  }
-
-  async function enableCompass(){
-    try{
-      if (typeof DeviceOrientationEvent!=="undefined" && typeof DeviceOrientationEvent.requestPermission==="function"){
-        const res = await DeviceOrientationEvent.requestPermission();
-        if (res !== 'granted') throw new Error('Kompas-tilladelse afvist');
-      }
-      window.addEventListener('deviceorientation', onDO, { passive:true });
-      setStatus('Kompas aktiveret.');
-    }catch(e){ setStatus('Kompas kunne ikke aktiveres: '+e.message); }
-  }
-  function onDO(e){
-    let head=null;
-    if (e.webkitCompassHeading!=null) head=e.webkitCompassHeading;
-    else if (e.absolute===true && e.alpha!=null){
-      const alpha=e.alpha; const orient=(screen.orientation&&screen.orientation.angle)||window.orientation||0; head=(360 - alpha + (orient||0))%360;
-    }
-    if (head!=null){ my.heading=head; my.last=Date.now(); renderArrow(); maybePush(); }
-  }
-
-  async function maybePush(){ if (!FMB.db||!my.group) return; if (my.lat==null && my.heading==null) return; await myDoc().set({ lat:my.lat, lon:my.lon, heading:my.heading, last:Date.now(), name:my.name }, { merge:true }); }
-
-  function getSelectedBuddy(){ if (!buddySelect||buddySelect.classList.contains('hidden')) return [...buddies.values()][0]||null; return buddies.get(buddySelect.value)||[...buddies.values()][0]||null; }
-
-  function renderArrow(){
-    const b=getSelectedBuddy();
-    let html='— <span class="units">meter</span>';
-    if (my.lat!=null && my.lon!=null && b && b.lat!=null && b.lon!=null){
-      const dist=haversine(my.lat,my.lon,b.lat,b.lon);
-      const bear=bearing(my.lat,my.lon,b.lat,b.lon);
-      const head=my.heading!=null?my.heading:0;
-      const rot=norm(bear - head);
-      if (arrowEl) arrowEl.style.transform=`rotate(${rot}deg)`;
-      html=fmtDist(dist);
-    }
-    if (distanceEl) distanceEl.innerHTML=html;
-  }
-})();
-
-
-<!-- ==================================
- File: arrow.svg (root)
-================================== -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <defs>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="6" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  <g transform="translate(100,100)">
-    <path d="M 0 -90 L 26 50 L 0 30 L -26 50 Z" fill="#ff0a28" filter="url(#glow)"/>
-  </g>
-</svg>
-
-
-<!-- ==================================
- Folder: chat/ — Files: chat.html, chat.css, chat.js
-================================== -->
-<!-- File: chat/chat.html -->
-<!DOCTYPE html>
-<html lang="da">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Chat · Find My Buddy</title>
-  <link rel="stylesheet" href="chat.css" />
-</head>
-<body>
-  <header class="top">
-    <a class="back" href="../index.html">← Tilbage</a>
-    <h1>Chat</h1>
-    <div class="me" id="me"></div>
-  </header>
-
-  <main id="messages" class="messages"></main>
-
-  <footer class="composer">
-    <div class="bubble-picker">
-      <button data-style="heart" title="❤️">❤️</button>
-      <button data-style="speech" title="💬">💬</button>
-      <button data-style="punch" title="👊🏻">👊🏻</button>
-      <button data-style="beer" title="🍺">🍺</button>
-      <button data-style="star" title="⭐️">⭐️</button>
-      <button data-style="cloud" title="☁️">☁️</button>
-    </div>
-    <div class="input-row">
-      <input id="text" placeholder="Skriv besked…" />
-      <button id="send">Send</button>
-    </div>
-  </footer>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="js/firebaseconfig.js"></script>
-  <script src="js/app.js"></script>
-</body>
-</html>
-
-/* File: chat/chat.css */
-:root{ --bg:#000; --fg:#fff; --muted:#9aa0a6; --bubble:#121418; --accent:#ff0a28 }
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0; background:rgba(0,0,0,.85); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; display:flex; flex-direction:column}
-.top{display:flex; align-items:center; justify-content:space-between; padding:12px; background:#0d0f12; border-bottom:1px solid #17191d}
-.back{color:#fff; text-decoration:none; background:#111; padding:8px 10px; border-radius:10px}
-.messages{flex:1; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:10px}
-.msg{max-width:76%; padding:10px 12px; color:#fff; font-weight:600}
-.me .name{font-size:12px; color:var(--muted)}
-.row{display:flex; gap:8px; align-items:flex-end}
-.msg.me{align-self:flex-end}
-.msg.them{align-self:flex-start}
-
-/* Emoji-shaped styles by class */
-.msg.heart{background:#e5093b; border-radius:24px; clip-path:path('M24 4 C24 0 18 0 16 4 C14 0 8 0 8 4 C8 10 16 14 16 20 C16 14 24 10 24 4 Z');}
-.msg.speech{background:#2a2f39; border-radius:18px}
-.msg.punch{background:#d7263d; border-radius:10px}
-.msg.beer{background:#c28f2c; border-radius:12px}
-.msg.star{background:#e5c100; border-radius:14px}
-.msg.cloud{background:#4a5a6a; border-radius:24px}
-
-.composer{backdrop-filter: blur(6px); background:rgba(0,0,0,.35); padding:10px; border-top:1px solid #17191d}
-.bubble-picker{display:flex; gap:6px; justify-content:center; margin-bottom:6px}
-.bubble-picker button{font-size:20px; background:#111; color:#fff; border:1px solid #222; border-radius:10px; padding:6px 8px}
-.input-row{display:flex; gap:8px}
-input{flex:1; padding:12px; border-radius:12px; border:1px solid #262a30; background:rgba(0,0,0,.25); color:#fff}
-button#send{background:var(--accent); border:none; color:#fff; padding:12px 16px; border-radius:12px; font-weight:700}
-
-
-// File: chat/chat.js
-(function(){
-  const $=s=>document.querySelector(s);
-  const messagesEl=$('#messages');
-  const textEl=$('#text');
-  const sendBtn=$('#send');
-  const meEl=$('#me');
-  let style='speech';
-
-  document.querySelectorAll('.bubble-picker button').forEach(b=>{
-    b.addEventListener('click',()=>{ style=b.dataset.style; b.blur(); });
-  });
-
-  const params=new URLSearchParams(document.location.search);
-  const group=params.get('group')||localStorage.getItem('group')||'DEMO';
-  const name=params.get('name')||localStorage.getItem('name')||'Makker';
-  localStorage.setItem('group',group); localStorage.setItem('name',name);
-  meEl.textContent=`${name} · ${group}`;
-
-  if (!window.FMB || !FMB.db){ alert('Firebase mangler config i ../firebase.js'); return; }
-  const db=FMB.db;
-
-  function send(){
-    const txt=(textEl.value||'').trim(); if(!txt) return;
-    db.collection('groups').doc(group).collection('messages').add({
-      txt, style, name, ts: Date.now()
-    });
-    textEl.value='';
-  }
-  sendBtn.addEventListener('click', send);
-  textEl.addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
-
-  db.collection('groups').doc(group).collection('messages').orderBy('ts','asc').onSnapshot(snap=>{
-    messagesEl.innerHTML='';
-    snap.forEach(doc=>{
-      const m=doc.data();
-      const div=document.createElement('div');
-      div.className=`msg ${m.style||'speech'} ${m.name===name?'me':'them'}`;
-      div.textContent=m.txt;
-      messagesEl.appendChild(div);
-      messagesEl.scrollTop=messagesEl.scrollHeight;
-    });
-  });
-})();
-
-
-<!-- ==================================
- Folder: camera/ — Files: camera.html, camera.css, camera.js
-================================== -->
-<!-- File: camera/camera.html -->
-<!DOCTYPE html>
-<html lang="da">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Kamera · Find My Buddy</title>
-  <link rel="stylesheet" href="camera.css" />
-</head>
-<body>
-  <header class="top">
-    <a class="back" href="../index.html">← Tilbage</a>
-    <h1>Kamera</h1>
-  </header>
-
-  <main class="wrap">
-    <video id="preview" autoplay playsinline></video>
-    <div class="controls">
-      <button id="btnPhoto">📸 Foto</button>
-      <button id="btnVideo">⏺️ Video</button>
-      <button id="btnStop" class="hidden">⏹️ Stop</button>
+  <main>
+    <div class="row">
+      <input id="groupInput" placeholder="Gruppe-ID (fx Test123)" />
+      <button id="btnJoin">Join / Opret</button>
+      <input id="displayNameInput" placeholder="Dit navn" />
+      <button id="btnSaveName">Gem</button>
+      <span id="loginTag" class="tag">Logger ind…</span>
     </div>
 
-    <section class="gallery" id="gallery"></section>
+    <div id="out">Starter…</div>
+
+    <h3>Kort</h3>
+    <div id="map"></div>
+
+    <h3>Medlemmer</h3>
+    <div id="members"></div>
   </main>
 
-  <canvas id="canvas" class="hidden"></canvas>
-
-  <script src="camera.js"></script>
-</body>
-</html>
-
-/* File: camera/camera.css */
-:root{ --bg:#000; --fg:#fff; --accent:#ff0a28 }
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0; background:#000; color:#fff; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-.top{display:flex; align-items:center; gap:12px; padding:12px; background:#0d0f12; border-bottom:1px solid #17191d}
-.back{color:#fff; text-decoration:none; background:#111; padding:8px 10px; border-radius:10px}
-.wrap{padding:12px}
-video{width:100%; max-height:48vh; background:#111; border-radius:12px}
-.controls{display:flex; gap:8px; margin:10px 0}
-button{background:var(--accent); color:#fff; border:none; padding:10px 14px; border-radius:12px; font-weight:700}
-.gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-top:10px}
-.item{position:relative; background:#111; border:1px solid #222; border-radius:10px; overflow:hidden}
-.item img, .item video{width:100%; display:block}
-.item .meta{position:absolute; bottom:6px; left:6px; font-size:12px; background:rgba(0,0,0,.5); padding:2px 6px; border-radius:6px}
-.item .del{position:absolute; top:6px; right:6px; background:#0008; border:none; color:#fff; border-radius:8px; padding:4px 6px}
-.hidden{display:none!important}
-
-// File: camera/camera.js
-(async function(){
-  const preview=document.getElementById('preview');
-  const canvas=document.getElementById('canvas');
-  const btnPhoto=document.getElementById('btnPhoto');
-  const btnVideo=document.getElementById('btnVideo');
-  const btnStop=document.getElementById('btnStop');
-  const gallery=document.getElementById('gallery');
-
-  let stream=null; let rec=null; let chunks=[];
-
-  async function startCam(){
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' }, audio:true });
-    preview.srcObject=stream;
-  }
-  await startCam();
-
-  function saveDB(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
-  function loadDB(key, fallback){ try{ return JSON.parse(localStorage.getItem(key))||fallback; }catch{ return fallback; } }
-
-  const KEY_PHOTOS='fmb_photos';
-  const KEY_VIDEOS='fmb_videos';
-
-  let photos=loadDB(KEY_PHOTOS, []);
-  let videos=loadDB(KEY_VIDEOS, []);
-
-  function purgeExpired(){
-    const now=Date.now();
-    photos=photos.filter(p=> now - p.ts < 30*24*60*60*1000);
-    videos=videos.filter(v=> now - v.ts < 7*24*60*60*1000);
-    saveDB(KEY_PHOTOS, photos); saveDB(KEY_VIDEOS, videos);
-  }
-  purgeExpired();
-
-  function render(){
-    gallery.innerHTML='';
-    photos.forEach((p,i)=>{
-      const el=document.createElement('div'); el.className='item';
-      el.innerHTML=`<img src="${p.data}" alt="foto"/><div class="meta">Foto · ${new Date(p.ts).toLocaleString()}</div><button class="del">Slet</button>`;
-      el.querySelector('.del').onclick=()=>{ photos.splice(i,1); saveDB(KEY_PHOTOS,photos); render(); };
-      gallery.appendChild(el);
-    });
-    videos.forEach((v,i)=>{
-      const el=document.createElement('div'); el.className='item';
-      el.innerHTML=`<video src="${v.data}" controls></video><div class="meta">Video · ${new Date(v.ts).toLocaleString()}</div><button class="del">Slet</button>`;
-      el.querySelector('.del').onclick=()=>{ videos.splice(i,1); saveDB(KEY_VIDEOS,videos); render(); };
-      gallery.appendChild(el);
-    });
-  }
-  render();
-
-  btnPhoto.addEventListener('click', ()=>{
-    const w=preview.videoWidth, h=preview.videoHeight; canvas.width=w; canvas.height=h;
-    const ctx=canvas.getContext('2d'); ctx.drawImage(preview,0,0,w,h);
-    const data=canvas.toDataURL('image/jpeg', 0.9);
-    photos.unshift({ data, ts:Date.now() }); saveDB(KEY_PHOTOS, photos); render();
-  });
-
-  btnVideo.addEventListener('click', ()=>{
-    chunks=[]; rec=new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
-    rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
-    rec.onstop=()=>{
-      const blob=new Blob(chunks, { type:'video/webm' });
-      const url=URL.createObjectURL(blob);
-      videos.unshift({ data:url, ts:Date.now() }); saveDB(KEY_VIDEOS, videos); render();
-    };
-    rec.start(); btnVideo.classList.add('hidden'); btnStop.classList.remove('hidden');
-  });
-
-  btnStop.addEventListener('click', ()=>{
-    if(rec&&rec.state!=='inactive') rec.stop();
-    btnStop.classList.add('hidden'); btnVideo.classList.remove('hidden');
-  });
-})();
-
-
-<!-- ==================================
- Folder: group/ — Files: group.html, group.js
-================================== -->
-<!-- File: group/group.html -->
-<!DOCTYPE html>
+  <script>
+    // ========= 1) Firebase config (INDSÆT DINE EGNE NØGLER HER) =========
+    <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Gruppe · Find My Buddy</title>
-  <style>body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial} .wrap{padding:12px} .row{display:flex;gap:8px;flex-wrap:wrap} input,button{background:#0b0d10;color:#fff;border:1px solid #262a30;padding:10px 12px;border-radius:10px} button.primary{background:#ff0a28;border:none} .list{margin-top:12px;border-top:1px solid #17191d;padding-top:12px} a{color:#fff;text-decoration:none;background:#111;padding:8px 10px;border-radius:10px;margin-right:8px}</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Find My Buddy 🚀</title>
+
+  <style>
+    body{font-family:Arial,system-ui,-apple-system,Segoe UI,Roboto;
+         background:#111;color:#eee;margin:0}
+    header{padding:12px 16px;background:#0b2230;color:#fff}
+    main{padding:12px 16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+    input{padding:8px 10px;border:1px solid #2b4453;border-radius:6px;background:#0f2a38;color:#e9f3fb}
+    input::placeholder{color:#8bb2c7}
+    button{padding:8px 10px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer}
+    button:hover{opacity:.9}
+    #out{min-height:28px;padding:6px 8px;background:#0c1b24;border:1px solid #1b2d3a;border-radius:8px}
+    #map{height:320px;border:1px solid #2e5e7b;border-radius:8px;margin:10px 0}
+    .tag{background:#0f2a38;border:1px solid #1b2d3a;border-radius:999px;padding:4px 10px}
+    #members > div{padding:4px 0;border-bottom:1px solid #1b2d3a}
+    h3{margin:16px 0 8px 0}
+  </style>
+
+  <!-- Leaflet (kort) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
+  <!-- Firebase (compat) – rækkefølgen er vigtig -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="wrap">
-    <p><a href="../index.html">← Tilbage</a></p>
-    <h1>Gruppe</h1>
+  <header><h1 style="margin:0">Find My Buddy 🚀</h1></header>
+
+  <main>
     <div class="row">
-      <input id="name" placeholder="Dit navn"/>
-      <input id="group" placeholder="Gruppekode (fx 7K9X)"/>
-      <button id="join" class="primary">Tilslut</button>
+      <input id="groupInput" placeholder="Gruppe-ID (fx Test123)" />
+      <button id="btnJoin">Join / Opret</button>
+      <input id="displayNameInput" placeholder="Dit navn" />
+      <button id="btnSaveName">Gem</button>
+      <span id="loginTag" class="tag">Logger ind…</span>
     </div>
-    <p id="link"></p>
-    <div class="list" id="members"></div>
-  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="../firebase.js"></script>
-  <script src="group.js"></script>
+    <div id="out">Starter…</div>
+
+    <h3>Kort</h3>
+    <div id="map"></div>
+
+    <h3>Medlemmer</h3>
+    <div id="members"></div>
+  </main>
+
+  <script>
+    // ========= 1) Firebase config (INDSÆT DINE EGNE NØGLER HER) =========
+  const firebaseConfig = {
+  apiKey: "AIzaSyCfJ5JDYF4_sZwZqNuaIBLa_qHZV4pPFMY",
+  authDomain: "find-my-buddy-2.firebaseapp.com",
+  projectId: "find-my-buddy-2",
+  storageBucket: "find-my-buddy-2.appspot.com",
+  messagingSenderId: "913962807255",
+  appId: "1:913962807255:web:81d0912386f97b12e2592",
+  measurementId: "G-4RS0KM5CWS"
+};
+      .catch(err => {
+        document.getElementById("loginTag").textContent = "❌ Fejl: " + err.message;
+      });
+
+    // ========= 3) App: Leaflet-kort + live-position + grupper =========
+    let map, myMarker;
+    let markers = new Map();   // uid -> Leaflet marker
+    let unsubMembers = null;   // Firestore unsubscribe
+    let currentGroupId = null;
+    let uid = null;
+
+    const elGroup   = document.getElementById("groupInput");
+    const elName    = document.getElementById("displayNameInput");
+    const elJoin    = document.getElementById("btnJoin");
+    const elSave    = document.getElementById("btnSaveName");
+    const elOut     = document.getElementById("out");
+    const elMembers = document.getElementById("members");
+
+    function status(msg){ elOut.textContent = msg; }
+
+    function initApp(){
+      uid = firebase.auth().currentUser?.uid || null;
+
+      // Leaflet kort
+      map = L.map("map");
+      const start = [55.676, 12.568]; // København indtil vi har GPS
+      map.setView(start, 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap"
+      }).addTo(map);
+
+      elJoin.addEventListener("click", joinGroup);
+      elSave.addEventListener("click", saveDisplayName);
+
+      // Live GPS
+      if ("geolocation" in navigator){
+        navigator.geolocation.watchPosition(
+          pos => {
+            const { latitude, longitude } = pos.coords;
+            updateMyMarker(latitude, longitude);
+
+            if (currentGroupId && uid){
+              firebase.firestore()
+                .collection("groups").doc(currentGroupId)
+                .collection("members").doc(uid)
+                .set({
+                  name: (elName.value || "").trim() || "Ukendt",
+                  lat: latitude,
+                  lng: longitude,
+                  ts: Date.now()
+                }, { merge:true });
+            }
+          },
+          err => {
+            console.warn("Geolocation fejl:", err);
+            status("⚠️ Position ikke delt (tillad lokation).");
+          },
+          { enableHighAccuracy:true, maximumAge:5000, timeout:20000 }
+        );
+      } else {
+        status("⚠️ Geolocation ikke understøttet på denne enhed.");
+      }
+    }
+
+    function updateMyMarker(lat, lng){
+      if (!map) return;
+      if (!myMarker){
+        myMarker = L.marker([lat, lng], { title:"Mig" }).addTo(map);
+        myMarker.bindPopup("Mig");
+        map.setView([lat, lng], 15);
+      } else {
+        myMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    async function joinGroup(){
+      const groupId = (elGroup.value || "").trim();
+      if (!groupId) return alert("Indtast en gruppe-ID (fx Test123)");
+
+      if (unsubMembers){ unsubMembers(); unsubMembers = null; }
+      currentGroupId = groupId;
+
+      // Opret gruppen, hvis den ikke findes
+      await firebase.firestore().collection("groups").doc(groupId).set({
+        created: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge:true });
+
+      // Lyt på medlemmer
+      unsubMembers = firebase.firestore()
+        .collection("groups").doc(groupId)
+        .collection("members")
+        .onSnapshot(snap => {
+          const arr = [];
+          snap.forEach(doc => {
+            const d = doc.data();
+            arr.push({ id: doc.id, ...d });
+            if (typeof d.lat === "number" && typeof d.lng === "number"){
+              upsertMarker(doc.id, d.name || "Ukendt", d.lat, d.lng);
+            }
+          });
+          renderMembers(arr);
+          status(`Forbundet til gruppe: ${groupId} (${arr.length} medlem/mer)`);
+        });
+
+      alert(`Du er nu i gruppen: ${groupId}`);
+    }
+
+    function upsertMarker(memberId, name, lat, lng){
+      if (!map) return;
+      const m = markers.get(memberId);
+      if (!m){
+        const mm = L.marker([lat, lng], { title:name || "" }).addTo(map);
+        mm.bindPopup(name || "");
+        markers.set(memberId, mm);
+      } else {
+        m.setLatLng([lat, lng]).bindPopup(name || "");
+      }
+    }
+
+    function renderMembers(list){
+      list.sort((a,b)=> (b.ts||0)-(a.ts||0));
+      elMembers.innerHTML = list.map(m => {
+        const when = m.ts ? new Date(m.ts).toLocaleTimeString() : "";
+        const ll = (m.lat!=null && m.lng!=null) ? `(${m.lat.toFixed(5)}, ${m.lng.toFixed(5)})` : "";
+        return `<div><b>${m.name || "Ukendt"}</b> ${ll} <span style="opacity:.7">${when}</span></div>`;
+      }).join("");
+    }
+
+    function saveDisplayName(){
+      if (!currentGroupId || !uid) return alert("Join en gruppe først.");
+      const name = (elName.value || "").trim();
+      firebase.firestore()
+        .collection("groups").doc(currentGroupId)
+        .collection("members").doc(uid)
+        .set({ name, ts: Date.now() }, { merge:true })
+        .then(()=> alert("Navn gemt."));
+    }
+  </script>
 </body>
 </html>
 
-// File: group/group.js
-(function(){
-  const $=s=>document.querySelector(s);
-  const nameEl=$('#name'); const groupEl=$('#group'); const linkEl=$('#link'); const membersEl=$('#members');
-  const joinBtn=$('#join');
-  const params=new URLSearchParams(location.search);
-  if(params.get('name')) nameEl.value=params.get('name');
-  if(params.get('group')) groupEl.value=params.get('group');
+    // ========= 2) Init Firebase + anonym login =========
+    firebase.initializeApp(firebaseConfig);
 
-  if(!window.FMB||!FMB.db){ alert('Firebase mangler config i ../firebase.js'); return; }
-  const db=FMB.db;
-  const id=localStorage.getItem('uid')|| (function(){ const x=Math.random().toString(36).slice(2,10); localStorage.setItem('uid',x); return x; })();
+    firebase.auth().signInAnonymously()
+      .then(() => {
+        document.getElementById("loginTag").textContent = "✅ Anonymt logget ind";
+        initApp();  // start resten når vi er logget ind
+      })
+      .catch(err => {
+        document.getElementById("loginTag").textContent = "❌ Fejl: " + err.message;
+      });
 
-  joinBtn.addEventListener('click', async()=>{
-    const name=(nameEl.value||'Makker').trim();
-    const group=(groupEl.value||'').trim().toUpperCase();
-    if(!group){ alert('Skriv en gruppekode'); return; }
-    localStorage.setItem('name',name); localStorage.setItem('group',group);
-    await db.collection('groups').doc(group).collection('members').doc(id).set({ name, last:Date.now() }, { merge:true });
-    linkEl.textContent = location.origin + location.pathname.replace(/group\/group\.html$/,'index.html') + `?group=${group}&name=${encodeURIComponent(name)}`;
-    subscribe(group);
-  });
+    // ========= 3) App: Leaflet-kort + live-position + grupper =========
+    let map, myMarker;
+    let markers = new Map();   // uid -> Leaflet marker
+    let unsubMembers = null;   // Firestore unsubscribe
+    let currentGroupId = null;
+    let uid = null;
 
-  function subscribe(group){
-    db.collection('groups').doc(group).collection('members').onSnapshot(snap=>{
-      const arr=[]; snap.forEach(doc=> arr.push(doc.data().name||'Makker')); membersEl.textContent = `Medlemmer (${arr.length}): `+arr.join(', ');
-    });
-  }
-})();
+    const elGroup   = document.getElementById("groupInput");
+    const elName    = document.getElementById("displayNameInput");
+    const elJoin    = document.getElementById("btnJoin");
+    const elSave    = document.getElementById("btnSaveName");
+    const elOut     = document.getElementById("out");
+    const elMembers = document.getElementById("members");
 
+    function status(msg){ elOut.textContent = msg; }
 
-<!-- ==================================
- Folder: camp/ — Files: camp.html, camp.js
-================================== -->
-<!-- File: camp/camp.html -->
-<!DOCTYPE html>
-<html lang="da">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Camp · Find My Buddy</title>
-  <style>body{margin:0;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial} .wrap{padding:12px} a{color:#fff;text-decoration:none;background:#111;padding:8px 10px;border-radius:10px} .card{background:#0d0f12;border:1px solid #17191d;border-radius:12px;padding:12px;margin-top:12px} button{background:#ff0a28;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700}</style>
-</head>
-<body>
-  <div class="wrap">
-    <p><a href="../index.html">← Tilbage</a></p>
-    <h1>Find min camp</h1>
+    function initApp(){
+      uid = firebase.auth().currentUser?.uid || null;
 
-    <div class="card">
-      <p id="campStatus">Ingen camp gemt endnu.</p>
-      <button id="saveCamp">Gem nuværende position som camp</button>
-      <button id="navigate" style="margin-left:6px">Vis pil mod camp</button>
-    </div>
+      // Leaflet kort
+      map = L.map("map");
+      const start = [55.676, 12.568]; // København indtil vi har GPS
+      map.setView(start, 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap"
+      }).addTo(map);
 
-    <div class="card">
-      <h3>Pil og afstand</h3>
-      <div id="distance">—</div>
-      <div style="display:flex;justify-content:center;margin-top:10px">
-        <svg id="arrow" viewBox="0 0 200 200" style="width:200px;filter:drop-shadow(0 0 12px #ff0a28)">
-          <g transform="translate(100,100)">
-            <path d="M 0 -90 L 26 50 L 0 30 L -26 50 Z" fill="#ff0a28"/>
-          </g>
-        </svg>
-      </div>
-    </div>
-  </div>
+      elJoin.addEventListener("click", joinGroup);
+      elSave.addEventListener("click", saveDisplayName);
 
-  <script src="camp.js"></script>
+      // Live GPS
+      if ("geolocation" in navigator){
+        navigator.geolocation.watchPosition(
+          pos => {
+            const { latitude, longitude } = pos.coords;
+            updateMyMarker(latitude, longitude);
+
+            if (currentGroupId && uid){
+              firebase.firestore()
+                .collection("groups").doc(currentGroupId)
+                .collection("members").doc(uid)
+                .set({
+                  name: (elName.value || "").trim() || "Ukendt",
+                  lat: latitude,
+                  lng: longitude,
+                  ts: Date.now()
+                }, { merge:true });
+            }
+          },
+          err => {
+            console.warn("Geolocation fejl:", err);
+            status("⚠️ Position ikke delt (tillad lokation).");
+          },
+          { enableHighAccuracy:true, maximumAge:5000, timeout:20000 }
+        );
+      } else {
+        status("⚠️ Geolocation ikke understøttet på denne enhed.");
+      }
+    }
+
+    function updateMyMarker(lat, lng){
+      if (!map) return;
+      if (!myMarker){
+        myMarker = L.marker([lat, lng], { title:"Mig" }).addTo(map);
+        myMarker.bindPopup("Mig");
+        map.setView([lat, lng], 15);
+      } else {
+        myMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    async function joinGroup(){
+      const groupId = (elGroup.value || "").trim();
+      if (!groupId) return alert("Indtast en gruppe-ID (fx Test123)");
+
+      if (unsubMembers){ unsubMembers(); unsubMembers = null; }
+      currentGroupId = groupId;
+
+      // Opret gruppen, hvis den ikke findes
+      await firebase.firestore().collection("groups").doc(groupId).set({
+        created: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge:true });
+
+      // Lyt på medlemmer
+      unsubMembers = firebase.firestore()
+        .collection("groups").doc(groupId)
+        .collection("members")
+        .onSnapshot(snap => {
+          const arr = [];
+          snap.forEach(doc => {
+            const d = doc.data();
+            arr.push({ id: doc.id, ...d });
+            if (typeof d.lat === "number" && typeof d.lng === "number"){
+              upsertMarker(doc.id, d.name || "Ukendt", d.lat, d.lng);
+            }
+          });
+          renderMembers(arr);
+          status(`Forbundet til gruppe: ${groupId} (${arr.length} medlem/mer)`);
+        });
+
+      alert(`Du er nu i gruppen: ${groupId}`);
+    }
+
+    function upsertMarker(memberId, name, lat, lng){
+      if (!map) return;
+      const m = markers.get(memberId);
+      if (!m){
+        const mm = L.marker([lat, lng], { title:name || "" }).addTo(map);
+        mm.bindPopup(name || "");
+        markers.set(memberId, mm);
+      } else {
+        m.setLatLng([lat, lng]).bindPopup(name || "");
+      }
+    }
+
+    function renderMembers(list){
+      list.sort((a,b)=> (b.ts||0)-(a.ts||0));
+      elMembers.innerHTML = list.map(m => {
+        const when = m.ts ? new Date(m.ts).toLocaleTimeString() : "";
+        const ll = (m.lat!=null && m.lng!=null) ? `(${m.lat.toFixed(5)}, ${m.lng.toFixed(5)})` : "";
+        return `<div><b>${m.name || "Ukendt"}</b> ${ll} <span style="opacity:.7">${when}</span></div>`;
+      }).join("");
+    }
+
+    function saveDisplayName(){
+      if (!currentGroupId || !uid) return alert("Join en gruppe først.");
+      const name = (elName.value || "").trim();
+      firebase.firestore()
+        .collection("groups").doc(currentGroupId)
+        .collection("members").doc(uid)
+        .set({ name, ts: Date.now() }, { merge:true })
+        .then(()=> alert("Navn gemt."));
+    }
+  </script>
 </body>
 </html>
-
-// File: camp/camp.js
-(function(){
-  const $=s=>document.querySelector(s);
-  const saveBtn=$('#saveCamp'); const navBtn=$('#navigate'); const statusEl=$('#campStatus'); const arrowEl=$('#arrow'); const distEl=$('#distance');
-  let camp=loadCamp(); let watching=false; let geoId=null; let heading=null; let here=null;
-
-  function saveCamp(){ if(!here){ alert('Hent GPS først ved at bevæge dig eller vent et øjeblik.'); return; } camp={ lat:here.lat, lon:here.lon, ts:Date.now() }; localStorage.setItem('fmb_camp', JSON.stringify(camp)); updateCampStatus(); }
-  function loadCamp(){ try{ return JSON.parse(localStorage.getItem('fmb_camp'))||null; }catch{ return null; } }
-  function updateCampStatus(){ statusEl.textContent = camp? `Camp: ${camp.lat.toFixed(5)}, ${camp.lon.toFixed(5)} · ${new Date(camp.ts).toLocaleString()}` : 'Ingen camp gemt endnu.'; }
-
-  function start(){ if(!('geolocation' in navigator)) { alert('GPS ikke understøttet'); return; }
-    geoId = navigator.geolocation.watchPosition(pos=>{ here={ lat:pos.coords.latitude, lon:pos.coords.longitude }; render(); }, err=>console.warn(err), { enableHighAccuracy:true, maximumAge:1000, timeout:15000 });
-    if (typeof DeviceOrientationEvent!=="undefined" && typeof DeviceOrientationEvent.requestPermission==="function"){ DeviceOrientationEvent.requestPermission().then(res=>{ if(res==='granted'){ window.addEventListener('deviceorientation',e=>{ if(e.webkitCompassHeading!=null) heading=e.webkitCompassHeading; else if (e.alpha!=null){ const orient=(screen.orientation&&screen.orientation.angle)||0; heading=(360 - e.alpha + (orient||0))%360; } render(); }); } }); }
-  }
-
-  function haversine(lat1, lon1, lat2, lon2){ const R=6371000; const toRad=d=>d*Math.PI/180; const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1); const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2; return 2*R*Math.asin(Math.sqrt(a)); }
-  function bearing(lat1, lon1, lat2, lon2){ const toRad=d=>d*Math.PI/180, toDeg=r=>r*180/Math.PI; const dLon=toRad(lon2-lon1); const y=Math.sin(dLon)*Math.cos(toRad(lat2)); const x=Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) - Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(dLon); return (toDeg(Math.atan2(y,x))+360)%360; }
-
-  function render(){ if(!camp||!here) { distEl.textContent='—'; return; } const dist=haversine(here.lat,here.lon,camp.lat,camp.lon); const bear=bearing(here.lat,here.lon,camp.lat,camp.lon); const head=heading||0; const rot=((bear-head)%360+360)%360; arrowEl.style.transform=`rotate(${rot}deg)`; distEl.textContent = dist<1000? `${Math.round(dist)} meter` : `${(dist/1000).toFixed(2)} km`; }
-
-  saveBtn.addEventListener('click', saveCamp); navBtn.addEventListener('click', ()=>{ watching=!watching; if(watching) start(); else { if(geoId!=null) navigator.geolocation.clearWatch(geoId); } });
-  updateCampStatus();
-})();
