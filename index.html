@@ -1,412 +1,57 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="da">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Find My Buddy 🚀</title>
-
+  <title>Find My Buddy – Auth test</title>
   <style>
-    body{font-family:Arial,system-ui,-apple-system,Segoe UI,Roboto;
-         background:#111;color:#eee;margin:0}
-    header{padding:12px 16px;background:#0b2230;color:#fff}
-    main{padding:12px 16px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-    input{padding:8px 10px;border:1px solid #2b4453;border-radius:6px;background:#0f2a38;color:#e9f3fb}
-    input::placeholder{color:#8bb2c7}
-    button{padding:8px 10px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer}
-    button:hover{opacity:.9}
-    #out{min-height:28px;padding:6px 8px;background:#0c1b24;border:1px solid #1b2d3a;border-radius:8px}
-    #map{height:320px;border:1px solid #2e5e7b;border-radius:8px;margin:10px 0}
-    .tag{background:#0f2a38;border:1px solid #1b2d3a;border-radius:999px;padding:4px 10px}
-    #members > div{padding:4px 0;border-bottom:1px solid #1b2d3a}
-    h3{margin:16px 0 8px 0}
+    body { font-family: system-ui, Arial; background:#111; color:#eee; padding:24px }
+    .card { background:#1b1b1b; border:1px solid #333; border-radius:10px; padding:16px; max-width:700px }
+    .row { margin: 8px 0; }
+    code { background:#222; padding:2px 6px; border-radius:6px }
   </style>
 
-  <!-- Leaflet (kort) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-
-  <!-- Firebase (compat) – rækkefølgen er vigtig -->
+  <!-- Firebase compat (rækkefølgen er vigtig) -->
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header><h1 style="margin:0">Find My Buddy 🚀</h1></header>
-
-  <main>
-    <div class="row">
-      <input id="groupInput" placeholder="Gruppe-ID (fx Test123)" />
-      <button id="btnJoin">Join / Opret</button>
-      <input id="displayNameInput" placeholder="Dit navn" />
-      <button id="btnSaveName">Gem</button>
-      <span id="loginTag" class="tag">Logger ind…</span>
-    </div>
-
-    <div id="out">Starter…</div>
-
-    <h3>Kort</h3>
-    <div id="map"></div>
-
-    <h3>Medlemmer</h3>
-    <div id="members"></div>
-  </main>
+  <div class="card">
+    <h1>Auth test</h1>
+    <div class="row">Status: <span id="status">🔄 Logger ind…</span></div>
+    <div class="row">Debug: <code id="dbg">venter…</code></div>
+  </div>
 
   <script>
-    // ========= 1) Firebase config (INDSÆT DINE EGNE NØGLER HER) =========
-    <!DOCTYPE html>
-<html lang="da">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Find My Buddy 🚀</title>
+    // 🔧 INDSÆT PRÆCIS DINE NØGLER HER (de samme som i dit projekt)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfJ5JDYF4_sZwZqNuaIbLA_qHZv4pPFMY",
+      authDomain: "find-my-buddy-2.firebaseapp.com",
+      projectId: "find-my-buddy-2",
+      storageBucket: "find-my-buddy-2.appspot.com",
+      messagingSenderId: "913962807255",
+      appId: "1:913962807255:web:81d0912386f97b12e2592",
+      measurementId: "G-4RS0KM5CWS"
+    };
 
-  <style>
-    body{font-family:Arial,system-ui,-apple-system,Segoe UI,Roboto;
-         background:#111;color:#eee;margin:0}
-    header{padding:12px 16px;background:#0b2230;color:#fff}
-    main{padding:12px 16px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-    input{padding:8px 10px;border:1px solid #2b4453;border-radius:6px;background:#0f2a38;color:#e9f3fb}
-    input::placeholder{color:#8bb2c7}
-    button{padding:8px 10px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer}
-    button:hover{opacity:.9}
-    #out{min-height:28px;padding:6px 8px;background:#0c1b24;border:1px solid #1b2d3a;border-radius:8px}
-    #map{height:320px;border:1px solid #2e5e7b;border-radius:8px;margin:10px 0}
-    .tag{background:#0f2a38;border:1px solid #1b2d3a;border-radius:999px;padding:4px 10px}
-    #members > div{padding:4px 0;border-bottom:1px solid #1b2d3a}
-    h3{margin:16px 0 8px 0}
-  </style>
+    const S = (t) => document.getElementById('status').textContent = t;
+    const D = (t) => document.getElementById('dbg').textContent = t;
 
-  <!-- Leaflet (kort) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-
-  <!-- Firebase (compat) – rækkefølgen er vigtig -->
-  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <header><h1 style="margin:0">Find My Buddy 🚀</h1></header>
-
-  <main>
-    <div class="row">
-      <input id="groupInput" placeholder="Gruppe-ID (fx Test123)" />
-      <button id="btnJoin">Join / Opret</button>
-      <input id="displayNameInput" placeholder="Dit navn" />
-      <button id="btnSaveName">Gem</button>
-      <span id="loginTag" class="tag">Logger ind…</span>
-    </div>
-
-    <div id="out">Starter…</div>
-
-    <h3>Kort</h3>
-    <div id="map"></div>
-
-    <h3>Medlemmer</h3>
-    <div id="members"></div>
-  </main>
-
-  <script>
-    // ========= 1) Firebase config (INDSÆT DINE EGNE NØGLER HER) =========
-  const firebaseConfig = {
-  apiKey: "AIzaSyCfJ5JDYF4_sZwZqNuaIBLa_qHZV4pPFMY",
-  authDomain: "find-my-buddy-2.firebaseapp.com",
-  projectId: "find-my-buddy-2",
-  storageBucket: "find-my-buddy-2.appspot.com",
-  messagingSenderId: "913962807255",
-  appId: "1:913962807255:web:81d0912386f97b12e2592",
-  measurementId: "G-4RS0KM5CWS"
-};
-      .catch(err => {
-        document.getElementById("loginTag").textContent = "❌ Fejl: " + err.message;
-      });
-
-    // ========= 3) App: Leaflet-kort + live-position + grupper =========
-    let map, myMarker;
-    let markers = new Map();   // uid -> Leaflet marker
-    let unsubMembers = null;   // Firestore unsubscribe
-    let currentGroupId = null;
-    let uid = null;
-
-    const elGroup   = document.getElementById("groupInput");
-    const elName    = document.getElementById("displayNameInput");
-    const elJoin    = document.getElementById("btnJoin");
-    const elSave    = document.getElementById("btnSaveName");
-    const elOut     = document.getElementById("out");
-    const elMembers = document.getElementById("members");
-
-    function status(msg){ elOut.textContent = msg; }
-
-    function initApp(){
-      uid = firebase.auth().currentUser?.uid || null;
-
-      // Leaflet kort
-      map = L.map("map");
-      const start = [55.676, 12.568]; // København indtil vi har GPS
-      map.setView(start, 13);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "© OpenStreetMap"
-      }).addTo(map);
-
-      elJoin.addEventListener("click", joinGroup);
-      elSave.addEventListener("click", saveDisplayName);
-
-      // Live GPS
-      if ("geolocation" in navigator){
-        navigator.geolocation.watchPosition(
-          pos => {
-            const { latitude, longitude } = pos.coords;
-            updateMyMarker(latitude, longitude);
-
-            if (currentGroupId && uid){
-              firebase.firestore()
-                .collection("groups").doc(currentGroupId)
-                .collection("members").doc(uid)
-                .set({
-                  name: (elName.value || "").trim() || "Ukendt",
-                  lat: latitude,
-                  lng: longitude,
-                  ts: Date.now()
-                }, { merge:true });
-            }
-          },
-          err => {
-            console.warn("Geolocation fejl:", err);
-            status("⚠️ Position ikke delt (tillad lokation).");
-          },
-          { enableHighAccuracy:true, maximumAge:5000, timeout:20000 }
-        );
-      } else {
-        status("⚠️ Geolocation ikke understøttet på denne enhed.");
+    window.addEventListener('load', async () => {
+      try {
+        D('loader fired; firebase=' + typeof firebase);
+        firebase.initializeApp(firebaseConfig);
+        D('apps: ' + firebase.apps.length);
+        await firebase.auth().signInAnonymously();
+        const u = firebase.auth().currentUser;
+        S('✅ Anonymt logget ind (uid: ' + (u && u.uid.slice(0,8)) + '…)');
+        D('ok');
+      } catch (err) {
+        console.error(err);
+        S('❌ Fejl: ' + err.code);
+        D(err.message);
       }
-    }
-
-    function updateMyMarker(lat, lng){
-      if (!map) return;
-      if (!myMarker){
-        myMarker = L.marker([lat, lng], { title:"Mig" }).addTo(map);
-        myMarker.bindPopup("Mig");
-        map.setView([lat, lng], 15);
-      } else {
-        myMarker.setLatLng([lat, lng]);
-      }
-    }
-
-    async function joinGroup(){
-      const groupId = (elGroup.value || "").trim();
-      if (!groupId) return alert("Indtast en gruppe-ID (fx Test123)");
-
-      if (unsubMembers){ unsubMembers(); unsubMembers = null; }
-      currentGroupId = groupId;
-
-      // Opret gruppen, hvis den ikke findes
-      await firebase.firestore().collection("groups").doc(groupId).set({
-        created: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge:true });
-
-      // Lyt på medlemmer
-      unsubMembers = firebase.firestore()
-        .collection("groups").doc(groupId)
-        .collection("members")
-        .onSnapshot(snap => {
-          const arr = [];
-          snap.forEach(doc => {
-            const d = doc.data();
-            arr.push({ id: doc.id, ...d });
-            if (typeof d.lat === "number" && typeof d.lng === "number"){
-              upsertMarker(doc.id, d.name || "Ukendt", d.lat, d.lng);
-            }
-          });
-          renderMembers(arr);
-          status(`Forbundet til gruppe: ${groupId} (${arr.length} medlem/mer)`);
-        });
-
-      alert(`Du er nu i gruppen: ${groupId}`);
-    }
-
-    function upsertMarker(memberId, name, lat, lng){
-      if (!map) return;
-      const m = markers.get(memberId);
-      if (!m){
-        const mm = L.marker([lat, lng], { title:name || "" }).addTo(map);
-        mm.bindPopup(name || "");
-        markers.set(memberId, mm);
-      } else {
-        m.setLatLng([lat, lng]).bindPopup(name || "");
-      }
-    }
-
-    function renderMembers(list){
-      list.sort((a,b)=> (b.ts||0)-(a.ts||0));
-      elMembers.innerHTML = list.map(m => {
-        const when = m.ts ? new Date(m.ts).toLocaleTimeString() : "";
-        const ll = (m.lat!=null && m.lng!=null) ? `(${m.lat.toFixed(5)}, ${m.lng.toFixed(5)})` : "";
-        return `<div><b>${m.name || "Ukendt"}</b> ${ll} <span style="opacity:.7">${when}</span></div>`;
-      }).join("");
-    }
-
-    function saveDisplayName(){
-      if (!currentGroupId || !uid) return alert("Join en gruppe først.");
-      const name = (elName.value || "").trim();
-      firebase.firestore()
-        .collection("groups").doc(currentGroupId)
-        .collection("members").doc(uid)
-        .set({ name, ts: Date.now() }, { merge:true })
-        .then(()=> alert("Navn gemt."));
-    }
-  </script>
-</body>
-</html>
-
-    // ========= 2) Init Firebase + anonym login =========
-    firebase.initializeApp(firebaseConfig);
-
-    firebase.auth().signInAnonymously()
-      .then(() => {
-        document.getElementById("loginTag").textContent = "✅ Anonymt logget ind";
-        initApp();  // start resten når vi er logget ind
-      })
-      .catch(err => {
-        document.getElementById("loginTag").textContent = "❌ Fejl: " + err.message;
-      });
-
-    // ========= 3) App: Leaflet-kort + live-position + grupper =========
-    let map, myMarker;
-    let markers = new Map();   // uid -> Leaflet marker
-    let unsubMembers = null;   // Firestore unsubscribe
-    let currentGroupId = null;
-    let uid = null;
-
-    const elGroup   = document.getElementById("groupInput");
-    const elName    = document.getElementById("displayNameInput");
-    const elJoin    = document.getElementById("btnJoin");
-    const elSave    = document.getElementById("btnSaveName");
-    const elOut     = document.getElementById("out");
-    const elMembers = document.getElementById("members");
-
-    function status(msg){ elOut.textContent = msg; }
-
-    function initApp(){
-      uid = firebase.auth().currentUser?.uid || null;
-
-      // Leaflet kort
-      map = L.map("map");
-      const start = [55.676, 12.568]; // København indtil vi har GPS
-      map.setView(start, 13);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "© OpenStreetMap"
-      }).addTo(map);
-
-      elJoin.addEventListener("click", joinGroup);
-      elSave.addEventListener("click", saveDisplayName);
-
-      // Live GPS
-      if ("geolocation" in navigator){
-        navigator.geolocation.watchPosition(
-          pos => {
-            const { latitude, longitude } = pos.coords;
-            updateMyMarker(latitude, longitude);
-
-            if (currentGroupId && uid){
-              firebase.firestore()
-                .collection("groups").doc(currentGroupId)
-                .collection("members").doc(uid)
-                .set({
-                  name: (elName.value || "").trim() || "Ukendt",
-                  lat: latitude,
-                  lng: longitude,
-                  ts: Date.now()
-                }, { merge:true });
-            }
-          },
-          err => {
-            console.warn("Geolocation fejl:", err);
-            status("⚠️ Position ikke delt (tillad lokation).");
-          },
-          { enableHighAccuracy:true, maximumAge:5000, timeout:20000 }
-        );
-      } else {
-        status("⚠️ Geolocation ikke understøttet på denne enhed.");
-      }
-    }
-
-    function updateMyMarker(lat, lng){
-      if (!map) return;
-      if (!myMarker){
-        myMarker = L.marker([lat, lng], { title:"Mig" }).addTo(map);
-        myMarker.bindPopup("Mig");
-        map.setView([lat, lng], 15);
-      } else {
-        myMarker.setLatLng([lat, lng]);
-      }
-    }
-
-    async function joinGroup(){
-      const groupId = (elGroup.value || "").trim();
-      if (!groupId) return alert("Indtast en gruppe-ID (fx Test123)");
-
-      if (unsubMembers){ unsubMembers(); unsubMembers = null; }
-      currentGroupId = groupId;
-
-      // Opret gruppen, hvis den ikke findes
-      await firebase.firestore().collection("groups").doc(groupId).set({
-        created: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge:true });
-
-      // Lyt på medlemmer
-      unsubMembers = firebase.firestore()
-        .collection("groups").doc(groupId)
-        .collection("members")
-        .onSnapshot(snap => {
-          const arr = [];
-          snap.forEach(doc => {
-            const d = doc.data();
-            arr.push({ id: doc.id, ...d });
-            if (typeof d.lat === "number" && typeof d.lng === "number"){
-              upsertMarker(doc.id, d.name || "Ukendt", d.lat, d.lng);
-            }
-          });
-          renderMembers(arr);
-          status(`Forbundet til gruppe: ${groupId} (${arr.length} medlem/mer)`);
-        });
-
-      alert(`Du er nu i gruppen: ${groupId}`);
-    }
-
-    function upsertMarker(memberId, name, lat, lng){
-      if (!map) return;
-      const m = markers.get(memberId);
-      if (!m){
-        const mm = L.marker([lat, lng], { title:name || "" }).addTo(map);
-        mm.bindPopup(name || "");
-        markers.set(memberId, mm);
-      } else {
-        m.setLatLng([lat, lng]).bindPopup(name || "");
-      }
-    }
-
-    function renderMembers(list){
-      list.sort((a,b)=> (b.ts||0)-(a.ts||0));
-      elMembers.innerHTML = list.map(m => {
-        const when = m.ts ? new Date(m.ts).toLocaleTimeString() : "";
-        const ll = (m.lat!=null && m.lng!=null) ? `(${m.lat.toFixed(5)}, ${m.lng.toFixed(5)})` : "";
-        return `<div><b>${m.name || "Ukendt"}</b> ${ll} <span style="opacity:.7">${when}</span></div>`;
-      }).join("");
-    }
-
-    function saveDisplayName(){
-      if (!currentGroupId || !uid) return alert("Join en gruppe først.");
-      const name = (elName.value || "").trim();
-      firebase.firestore()
-        .collection("groups").doc(currentGroupId)
-        .collection("members").doc(uid)
-        .set({ name, ts: Date.now() }, { merge:true })
-        .then(()=> alert("Navn gemt."));
-    }
+    });
   </script>
 </body>
 </html>
