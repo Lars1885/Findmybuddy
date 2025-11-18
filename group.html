@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <title>Find My Buddy – Gruppe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="top-bar">
+  <button class="back-btn" onclick="window.location.href='menu.html'">☰</button>
+  <h1>Din gruppe</h1>
+</header>
+
+<main class="screen">
+  <section class="card">
+    <p class="small">Gruppekode:</p>
+    <p id="groupCodeDisplay" class="group-code"></p>
+
+    <h3>Dine makkere</h3>
+    <ul id="memberList" class="member-list"></ul>
+
+    <div class="button-row">
+      <button class="btn secondary" onclick="window.location.href='map.html'">Find makker (pil)</button>
+      <button class="btn secondary" onclick="window.location.href='photo.html'">Billeder</button>
+    </div>
+
+    <p id="groupStatus" class="status"></p>
+  </section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/group.js"></script>
+</body>
+</html>
