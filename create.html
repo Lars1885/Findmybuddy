@@ -14,23 +14,13 @@
   <main class="screen">
     <section class="card">
       <p>Du opretter en midlertidig gruppe til koncerten, festivalen eller turen.</p>
-      <button id="createGroupBtn" class="btn primary">
+      <button
+        class="btn primary"
+        onclick="window.location.href='group.html';"
+      >
         Opret gruppe
       </button>
     </section>
   </main>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const btn = document.getElementById("createGroupBtn");
-      if (!btn) return;
-
-      btn.addEventListener("click", () => {
-        // TODO: Her skal vi senere lave rigtig Firebase-oprettelse
-        // For nu: hop videre til gruppesiden
-        window.location.href = "group.html";
-      });
-    });
-  </script>
 </body>
 </html>
