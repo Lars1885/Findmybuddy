@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <title>Find My Buddy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <header class="top-bar">
     <h1>Find My Buddy</h1>
@@ -18,44 +18,48 @@
       <p>Skriv dit navn og tryk Start for at finde dine makkere 🧭</p>
 
       <label for="nameInput" class="label">Dit navn</label>
-      <input id="nameInput" type="text" placeholder="Fx Sofie" maxlength="20" />
+      <input
+        id="nameInput"
+        type="text"
+        placeholder="Fx Sofie"
+        maxlength="20"
+      />
 
       <button id="startBtn" class="btn primary">Start</button>
 
       <p class="small">
-        Ingen konto, ingen fødselsdato – bare et navn.  
+        Ingen konto, ingen fødselsdato – bare et navn.
       </p>
     </section>
   </main>
 
- <script>
-  const NAME_KEY = "fmb_name";
+  <script>
+    const NAME_KEY = "fmb_name";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const nameInput = document.getElementById("nameInput");
-    const startBtn = document.getElementById("startBtn");
+    document.addEventListener("DOMContentLoaded", () => {
+      const nameInput = document.getElementById("nameInput");
+      const startBtn = document.getElementById("startBtn");
 
-    if (!nameInput || !startBtn) return;
+      if (!nameInput || !startBtn) return;
 
-    const savedName = localStorage.getItem(NAME_KEY);
-    if (savedName) {
-      nameInput.value = savedName;
-    }
-
-    startBtn.addEventListener("click", () => {
-      const name = nameInput.value.trim();
-      if (!name) {
-        alert("Skriv lige dit navn 😊");
-        return;
+      const savedName = localStorage.getItem(NAME_KEY);
+      if (savedName) {
+        nameInput.value = savedName;
       }
 
-      localStorage.setItem(NAME_KEY, name);
+      startBtn.addEventListener("click", () => {
+        const name = nameInput.value.trim();
+        if (!name) {
+          alert("Skriv lige dit navn 😊");
+          return;
+        }
 
-      // Altid første gang til intro
-      window.location.href = "intro.html";
+        localStorage.setItem(NAME_KEY, name);
+
+        // ALTID videre til intro-siden
+        window.location.href = "intro.html";
+      });
     });
-  });
-</script>
+  </script>
 </body>
 </html>
-
