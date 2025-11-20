@@ -30,7 +30,6 @@
 
  <script>
   const NAME_KEY = "fmb_name";
-  const INTRO_DONE_KEY = "fmb_intro_done";
 
   document.addEventListener("DOMContentLoaded", () => {
     const nameInput = document.getElementById("nameInput");
@@ -52,14 +51,11 @@
 
       localStorage.setItem(NAME_KEY, name);
 
-      const introDone = localStorage.getItem(INTRO_DONE_KEY) === "1";
-      if (introDone) {
-        window.location.href = "menu.html";
-      } else {
-        window.location.href = "intro.html";
-      }
+      // Altid første gang til intro
+      window.location.href = "intro.html";
     });
   });
 </script>
 </body>
 </html>
+
