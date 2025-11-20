@@ -1,79 +1,94 @@
 // js/photo.js
 
-const {
-  db,
-  storage,
-  fmbGetGroupId,
-  fmbGetMemberId,
-  fmbGetName
-} = window.fmbFirebase;
+const NAME_KEY = "fmb_name";
+const GROUP_KEY = "fmb_group_code";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const input = document.getElementById("photoInput");
-  const uploadBtn = document.getElementById("uploadPhotoBtn");
-  const statusEl = document.getElementById("photoStatus");
-  const grid = document.getElementById("photoGrid");
+  const takePhotoBtn = document.getElementById("takePhotoBtn");
+  const backToGroupBtn = document.getElementById("backToGroupBtn");
+  const photoInput = document.getElementById("photoInput");
+  const photoGrid = document.getElementById("photoGrid");
+  const photoInfo = document.getElementById("photoInfo");
 
-  const groupId = fmbGetGroupId();
-  const memberId = fmbGetMemberId();
+  const groupCode = localStorage.getItem(GROUP_KEY) || "DEFAULT";
+  const userName = localStorage.getItem(NAME_KEY) || "Ukendt";
 
-  if (!groupId || !memberId) {
-    statusEl.textContent = "Du skal være i en gruppe for at bruge albummet.";
-    return;
+  const STORAGE_KEY = `fmb_photos_${groupCode}`;
+
+  photoInfo.textContent = `Gruppe: ${groupCode} – makker: ${userName}`;
+
+  // Hent gemte billeder for gruppen
+  let photos = [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    photos = raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    console.error("Kunne ikke læse gemte billeder", err);
+    photos = [];
   }
 
-  if (!storage) {
-    statusEl.textContent = "Storage er ikke initialiseret.";
-    return;
-  }
-
-  uploadBtn.addEventListener("click", async () => {
-    const file = input.files && input.files[0];
-    if (!file) {
-      alert("Vælg eller tag et billede først 👍");
+  function renderPhotos() {
+    photoGrid.innerHTML = "";
+    if (!photos.length) {
+      const p = document.createElement("p");
+      p.className = "small";
+      p.textContent = "Ingen billeder endnu – tag det første 😊";
+      photoGrid.appendChild(p);
       return;
     }
 
-    statusEl.textContent = "Uploader billede…";
+    photos.forEach((p) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "photo-item";
 
+      const img = document.createElement("img");
+      img.src = p.dataUrl;
+      img.alt = p.takenBy || "Billede";
+
+      wrapper.appendChild(img);
+      photoGrid.appendChild(wrapper);
+    });
+  }
+
+  function savePhotos() {
     try {
-      const filename = Date.now() + "_" + file.name.replace(/\s+/g, "_");
-      const ref = storage.ref().child(`groups/${groupId}/${filename}`);
-
-      await ref.put(file);
-      const url = await ref.getDownloadURL();
-
-      await db
-        .collection("groups")
-        .doc(groupId)
-        .collection("photos")
-        .add({
-          url,
-          by: fmbGetName(),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-      statusEl.textContent = "Billede uploadet ✅";
-      input.value = "";
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(photos));
     } catch (err) {
-      console.error(err);
-      statusEl.textContent = "Fejl ved upload – prøv igen.";
+      console.error("Kunne ikke gemme billeder", err);
+      alert("Kunne ikke gemme billedet – måske for lidt plads.");
     }
+  }
+
+  takePhotoBtn.addEventListener("click", () => {
+    photoInput.click();
   });
 
-  // Lyt til billeder
-  db.collection("groups")
-    .doc(groupId)
-    .collection("photos")
-    .orderBy("createdAt", "desc")
-    .onSnapshot((snap) => {
-      grid.innerHTML = "";
-      snap.forEach((doc) => {
-        const data = doc.data();
-        const img = document.createElement("img");
-        img.src = data.url;
-        img.alt = data.by || "Buddy";
-        grid.appendChild(img);
+  photoInput.addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+
+      photos.unshift({
+        dataUrl,
+        takenBy: userName,
+        ts: Date.now(),
       });
-    });
+
+      savePhotos();
+      renderPhotos();
+    };
+    reader.readAsDataURL(file);
+
+    // Nulstil input så man kan vælge samme fil igen, hvis man vil
+    event.target.value = "";
+  });
+
+  backToGroupBtn.addEventListener("click", () => {
+    window.location.href = "group.html";
+  });
+
+  renderPhotos();
 });
