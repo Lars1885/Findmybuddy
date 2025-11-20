@@ -1,51 +1,40 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-    <meta charset="UTF-8" />
-    <title>Find My Buddy – Join gruppe</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <title>Find My Buddy · Join gruppe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-<header class="top-bar">
-    <h1>Find My Buddy</h1>
-</header>
+  <header class="top-bar">
+    <h1>Join gruppe</h1>
+  </header>
 
-<main class="screen">
+  <main class="screen">
     <section class="card">
-        <h2>Join gruppe</h2>
-        <p>Indtast den kode, du har fået af en makker:</p>
+      <h2>Indtast gruppekode</h2>
+      <p class="small">
+        Skriv koden, du har fået af din makker. Så kommer du ind i samme gruppe.
+      </p>
 
-        <label class="label" for="groupCodeInput">Gruppekode</label>
-        <input id="groupCodeInput" type="text" maxlength="6" placeholder="Fx AB12CD" />
+      <label for="joinCodeInput" class="label">Gruppekode</label>
+      <input
+        id="joinCodeInput"
+        type="text"
+        maxlength="8"
+        placeholder="Fx AB3D7K"
+        autocomplete="off"
+      />
 
-        <button id="joinGroupBtn" class="btn primary">Join</button>
+      <button id="joinBtn" class="btn primary">Join gruppe</button>
+
+      <p class="small">
+        Har du ikke en kode endnu? Lad en i gruppen trykke "Opret gruppe" og sende koden til dig.
+      </p>
     </section>
-</main>
+  </main>
 
-<script>
-const NAME_KEY = "fmb_name";
-const INTRO_DONE_KEY = "fmb_intro_done";
-
-document.addEventListener("DOMContentLoaded", () => {
-    const joinBtn = document.getElementById("joinGroupBtn");
-    const groupCodeInput = document.getElementById("groupCodeInput");
-
-    joinBtn.addEventListener("click", () => {
-        const code = groupCodeInput.value.trim().toUpperCase();
-
-        if (!code || code.length < 4) {
-            alert("Skriv en gyldig kode 😄");
-            return;
-        }
-
-        // Gem gruppen og send til gruppesiden
-        localStorage.setItem("fmb_group_code", code);
-        window.location.href = "group.html";
-    });
-});
-</script>
-
+  <script src="js/join.js"></script>
 </body>
 </html>
