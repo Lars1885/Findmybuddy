@@ -20,15 +20,17 @@
     </p>
 
     <div class="photo-actions">
-      <button id="takePhotoBtn" class="btn primary">
+      <!-- Label ser ud som en knap, men åbner file-input -->
+      <label for="photoInput" class="btn primary">
         Tag / vælg billede
-      </button>
+      </label>
+
       <button id="backToGroupBtn" class="btn secondary">
         Tilbage til gruppe
       </button>
     </div>
 
-    <!-- Skjult file input (åbner kamera / galleri på mobilen) -->
+    <!-- Skjult file input (kamera / galleri) -->
     <input
       id="photoInput"
       type="file"
@@ -48,3 +50,4 @@
 <script src="js/photo.js"></script>
 </body>
 </html>
+
