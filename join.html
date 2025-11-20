@@ -1,31 +1,51 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8" />
-  <title>Find My Buddy – Join gruppe</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <title>Find My Buddy – Join gruppe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 <header class="top-bar">
-  <button class="back-btn" onclick="window.location.href='menu.html'">←</button>
-  <h1>Join gruppe</h1>
+    <h1>Find My Buddy</h1>
 </header>
 
 <main class="screen">
-  <section class="card">
-    <p>Indtast gruppens kode (fx ABC123).</p>
-    <label for="groupCodeInput" class="label">Gruppekode</label>
-    <input id="groupCodeInput" type="text" maxlength="6" class="code-input" />
+    <section class="card">
+        <h2>Join gruppe</h2>
+        <p>Indtast den kode, du har fået af en makker:</p>
 
-    <button id="joinGroupBtn" class="btn primary">Join</button>
-    <p id="joinStatus" class="status"></p>
-  </section>
+        <label class="label" for="groupCodeInput">Gruppekode</label>
+        <input id="groupCodeInput" type="text" maxlength="6" placeholder="Fx AB12CD" />
+
+        <button id="joinGroupBtn" class="btn primary">Join</button>
+    </section>
 </main>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/group.js"></script>
+<script>
+const NAME_KEY = "fmb_name";
+const INTRO_DONE_KEY = "fmb_intro_done";
+
+document.addEventListener("DOMContentLoaded", () => {
+    const joinBtn = document.getElementById("joinGroupBtn");
+    const groupCodeInput = document.getElementById("groupCodeInput");
+
+    joinBtn.addEventListener("click", () => {
+        const code = groupCodeInput.value.trim().toUpperCase();
+
+        if (!code || code.length < 4) {
+            alert("Skriv en gyldig kode 😄");
+            return;
+        }
+
+        // Gem gruppen og send til gruppesiden
+        localStorage.setItem("fmb_group_code", code);
+        window.location.href = "group.html";
+    });
+});
+</script>
+
 </body>
 </html>
