@@ -6,30 +6,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 <header class="top-bar">
-  <button class="back-btn" onclick="window.location.href='group.html'">←</button>
-  <h1>Fælles album</h1>
+  <h1>Find My Buddy</h1>
 </header>
 
 <main class="screen">
   <section class="card">
-    <p>Tag et billede direkte i appen – det kommer i gruppens album 📸</p>
-    <input id="photoInput" type="file" accept="image/*" capture="environment" />
-    <button id="uploadPhotoBtn" class="btn primary">Upload billede</button>
-    <p id="photoStatus" class="status"></p>
-  </section>
+    <h2>Gruppens billeder</h2>
+    <p class="small">
+      Tag billeder direkte på telefonen – de gemmes lokalt i denne gruppe.
+    </p>
 
-  <section class="card">
-    <h3>Jeres billeder</h3>
-    <div id="photoGrid" class="photo-grid"></div>
+    <div class="photo-actions">
+      <button id="takePhotoBtn" class="btn primary">
+        Tag / vælg billede
+      </button>
+      <button id="backToGroupBtn" class="btn secondary">
+        Tilbage til gruppe
+      </button>
+    </div>
+
+    <!-- Skjult file input (åbner kamera / galleri på mobilen) -->
+    <input
+      id="photoInput"
+      type="file"
+      accept="image/*"
+      capture="environment"
+      style="display:none"
+    />
+
+    <div id="photoInfo" class="small"></div>
+
+    <div id="photoGrid" class="photo-grid">
+      <!-- Billeder indsættes med JS -->
+    </div>
   </section>
 </main>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
-<script src="js/firebase.js"></script>
 <script src="js/photo.js"></script>
 </body>
 </html>
