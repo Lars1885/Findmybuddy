@@ -24,6 +24,20 @@
     </section>
   </main>
 
-  <script src="js/app.js"></script>
+<script>
+  const INTRO_DONE_KEY = "fmb_intro_done";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const introContinueBtn = document.getElementById("introContinueBtn");
+    if (!introContinueBtn) return;
+
+    introContinueBtn.addEventListener("click", () => {
+      // Markér at intro er gennemført
+      localStorage.setItem(INTRO_DONE_KEY, "1");
+      // Videre til menuen
+      window.location.href = "menu.html";
+    });
+  });
+</script>
 </body>
 </html>
