@@ -4,34 +4,25 @@
   <meta charset="UTF-8" />
   <title>Find My Buddy - Join gruppe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="top-bar">
-    <h1>Find My Buddy</h1>
-  </header>
+<header class="top-bar">
+  <h1>Join gruppe</h1>
+</header>
 
-  <main class="screen">
-    <section class="card">
-      <h2>Join gruppe</h2>
-      <p>Indtast gruppens kode for at joine dine makkere.</p>
+<main class="screen">
+  <section class="card">
+    <p>Indtast gruppekode fra din ven for at joine gruppen.</p>
+    <label for="groupCodeInput" class="label">Gruppekode</label>
+    <input id="groupCodeInput" type="text" class="input" maxlength="10" />
 
-      <label for="groupCodeInput" class="label">Gruppekode</label>
-      <input
-        id="groupCodeInput"
-        type="text"
-        maxlength="6"
-        placeholder="Fx ABC123"
-      />
+    <button id="joinBtn" class="btn primary">
+      Join gruppe
+    </button>
+  </section>
+</main>
 
-      <!-- VIGTIGT: id skal være joinGroupBtn -->
-      <button id="joinGroupBtn" class="btn primary">
-        Join gruppe
-      </button>
-    </section>
-  </main>
-
-  <!-- VIGTIGT: samme script som på create.html -->
-  <script src="js/group.js"></script>
+<script src="js/join.js"></script>
 </body>
 </html>
