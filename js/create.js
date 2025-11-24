@@ -18,10 +18,10 @@ document.addEventListener("DOMContentLoaded", () => {
     createBtn.addEventListener("click", () => {
         const code = generateGroupCode();
 
-        // gem kode lokalt
+        // Gem koden lokalt
         localStorage.setItem(GROUP_KEY, code);
 
-        // videre til gruppesiden
+        // Videre til gruppesiden
         window.location.href = "group.html";
     });
 });
