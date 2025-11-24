@@ -2,17 +2,18 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <title>Find My Buddy – Join gruppe</title>
+  <title>Find My Buddy - Join gruppe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <header class="top-bar">
-    <h1>Join gruppe</h1>
+    <h1>Find My Buddy</h1>
   </header>
 
   <main class="screen">
     <section class="card">
+      <h2>Join gruppe</h2>
       <p>Indtast gruppens kode for at joine dine makkere.</p>
 
       <label for="groupCodeInput" class="label">Gruppekode</label>
@@ -20,20 +21,17 @@
         id="groupCodeInput"
         type="text"
         maxlength="6"
-        class="input"
-        placeholder="Fx AB4KQ2"
+        placeholder="Fx ABC123"
       />
 
+      <!-- VIGTIGT: id skal være joinGroupBtn -->
       <button id="joinGroupBtn" class="btn primary">
         Join gruppe
       </button>
-
-      <p class="small">
-        Du får koden af den, der har oprettet gruppen.
-      </p>
     </section>
   </main>
 
-  <script src="js/join.js"></script>
+  <!-- VIGTIGT: samme script som på create.html -->
+  <script src="js/group.js"></script>
 </body>
 </html>
