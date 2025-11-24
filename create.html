@@ -2,7 +2,7 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <title>Find My Buddy – Menu</title>
+  <title>Find My Buddy – Opret gruppe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,22 +13,16 @@
 
   <main class="screen">
     <section class="card">
-      <button class="btn primary" onclick="window.location.href='create.html';">
+      <p>Du opretter en midlertidig gruppe til koncerten, festivalen eller turen.</p>
+
+      <!-- VIGTIGT: ingen onclick her, kun et id -->
+      <button id="createGroupBtn" class="btn primary">
         Opret gruppe
       </button>
-
-      <button class="btn primary" onclick="window.location.href='join.html';">
-        Join gruppe
-      </button>
-
-      <button class="btn" onclick="window.location.href='group.html';">
-        Gå til min gruppe
-      </button>
-
-      <p class="small">
-        Sessioner er tidsbegrænsede – perfekt til koncerter, festivaler og byture.
-      </p>
     </section>
   </main>
+
+  <!-- Her kobler vi siden til create.js, der laver koden -->
+  <script src="js/create.js"></script>
 </body>
 </html>
