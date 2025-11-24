@@ -2,36 +2,34 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <title>Find My Buddy – Gruppe</title>
+  <title>Find My Buddy – Din gruppe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header class="top-bar">
-  <button class="back-btn" onclick="window.location.href='menu.html'">☰</button>
-  <h1>Din gruppe</h1>
-</header>
+  <header class="top-bar">
+    <h1>Din gruppe</h1>
+  </header>
 
-<main class="screen">
-  <section class="card">
-    <p class="small">Gruppekode:</p>
-    <p id="groupCodeDisplay" class="group-code"></p>
+  <main class="screen">
+    <section class="card">
+      <p>
+        Gruppekode:
+        <strong><span id="groupCode"></span></strong>
+      </p>
 
-    <h3>Dine makkere</h3>
-    <ul id="memberList" class="member-list"></ul>
+      <h2>Dine makkere</h2>
 
-    <div class="button-row">
-      <button class="btn secondary" onclick="window.location.href='map.html'">Find makker (pil)</button>
-      <button class="btn secondary" onclick="window.location.href='photo.html'">Billeder</button>
-    </div>
+      <button id="openArrowBtn" class="btn">
+        Find makker (pil)
+      </button>
 
-    <p id="groupStatus" class="status"></p>
-  </section>
-</main>
+      <button id="openPhotoBtn" class="btn">
+        Billeder
+      </button>
+    </section>
+  </main>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/group.js"></script>
+  <script src="js/group.js"></script>
 </body>
 </html>
