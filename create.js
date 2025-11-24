@@ -3,7 +3,7 @@
 const GROUP_KEY = "fmb_group_code";
 
 function generateGroupCode() {
-  const chars = "ABCDEFGHJKLNMPRSTUVWXYZZ23456789";
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
   for (let i = 0; i < 6; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
@@ -17,8 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   createBtn.addEventListener("click", () => {
     const code = generateGroupCode();
-    // Gem koden lokalt
+
+    // Gem koden lokalt – så både dig og din browser kender gruppen
     localStorage.setItem(GROUP_KEY, code);
+
     // Videre til gruppesiden
     window.location.href = "group.html";
   });
