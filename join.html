@@ -2,7 +2,7 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <title>Find My Buddy · Join gruppe</title>
+  <title>Find My Buddy – Join gruppe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,24 +13,23 @@
 
   <main class="screen">
     <section class="card">
-      <h2>Indtast gruppekode</h2>
-      <p class="small">
-        Skriv koden, du har fået af din makker. Så kommer du ind i samme gruppe.
-      </p>
+      <p>Indtast gruppens kode for at joine dine makkere.</p>
 
-      <label for="joinCodeInput" class="label">Gruppekode</label>
+      <label for="groupCodeInput" class="label">Gruppekode</label>
       <input
-        id="joinCodeInput"
+        id="groupCodeInput"
         type="text"
-        maxlength="8"
-        placeholder="Fx AB3D7K"
-        autocomplete="off"
+        maxlength="6"
+        class="input"
+        placeholder="Fx AB4KQ2"
       />
 
-      <button id="joinBtn" class="btn primary">Join gruppe</button>
+      <button id="joinGroupBtn" class="btn primary">
+        Join gruppe
+      </button>
 
       <p class="small">
-        Har du ikke en kode endnu? Lad en i gruppen trykke "Opret gruppe" og sende koden til dig.
+        Du får koden af den, der har oprettet gruppen.
       </p>
     </section>
   </main>
