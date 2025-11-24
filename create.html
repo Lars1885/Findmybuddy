@@ -2,9 +2,9 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <title>Find My Buddy – Opret gruppe</title>
+  <title>Find My Buddy - Opret gruppe</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <header class="top-bar">
@@ -14,13 +14,15 @@
   <main class="screen">
     <section class="card">
       <p>Du opretter en midlertidig gruppe til koncerten, festivalen eller turen.</p>
+
+      <!-- VIGTIGT: id skal være createGroupBtn -->
       <button id="createGroupBtn" class="btn primary">
         Opret gruppe
       </button>
     </section>
   </main>
 
-  <!-- vigtig: vi bruger nu js/create.js -->
-  <script src="js/create.js"></script>
+  <!-- VIGTIGT: loader logikken til at lave gruppen -->
+  <script src="js/group.js"></script>
 </body>
 </html>
