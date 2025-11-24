@@ -4,7 +4,6 @@ const GROUP_KEY = "fmb_group_code";
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("groupCodeInput");
   const btn = document.getElementById("joinBtn");
-
   if (!input || !btn) return;
 
   btn.addEventListener("click", () => {
@@ -15,10 +14,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // gem koden til resten af appen
+    // Gem evt. lokalt
     localStorage.setItem(GROUP_KEY, code);
 
-    // videre til gruppesiden
-    window.location.href = "group.html";
+    // Gå til gruppesiden med koden i URL'en
+    window.location.href = `group.html?code=${encodeURIComponent(code)}`;
   });
 });
