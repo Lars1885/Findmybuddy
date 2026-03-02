@@ -15,49 +15,38 @@
   <main class="screen">
     <section class="card">
       <h2>Velkommen</h2>
-      <p>Skriv dit navn og tryk Start for at finde dine makkere 🧭</p>
+      <p>Skriv et kaldenavn og tryk Start for at finde dine makkere 🧭</p>
 
-      <label for="nameInput" class="label">Dit navn</label>
+      <label for="nameInput" class="label">Dit kaldenavn</label>
       <input
         id="nameInput"
         type="text"
-        placeholder="Fx Sofie"
+        placeholder="Fx Stjerneskud"
         maxlength="20"
       />
 
       <button id="startBtn" class="btn primary">Start</button>
 
-      <p class="small">
-        Ingen konto, ingen fødselsdato – bare et navn.
-      </p>
+      <p class="small">Ingen konto, ingen datalagring – kun en midlertidig session.</p>
     </section>
   </main>
 
+  <script src="js/session.js"></script>
   <script>
-    const NAME_KEY = "fmb_name";
-
     document.addEventListener("DOMContentLoaded", () => {
       const nameInput = document.getElementById("nameInput");
       const startBtn = document.getElementById("startBtn");
 
       if (!nameInput || !startBtn) return;
 
-      const savedName = localStorage.getItem(NAME_KEY);
-      if (savedName) {
-        nameInput.value = savedName;
-      }
-
       startBtn.addEventListener("click", () => {
         const name = nameInput.value.trim();
         if (!name) {
-          alert("Skriv lige dit navn 😊");
+          alert("Skriv lige et kaldenavn 😊");
           return;
         }
 
-        localStorage.setItem(NAME_KEY, name);
-
-        // ALTID videre til intro-siden
-        window.location.href = "intro.html";
+        fmbNavigate("intro.html", { nick: name });
       });
     });
   </script>

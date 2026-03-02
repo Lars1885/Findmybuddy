@@ -13,22 +13,30 @@
 
   <main class="screen">
     <section class="card">
-      <button class="btn primary" onclick="window.location.href='create.html';">
-        Opret gruppe
-      </button>
+      <button id="createBtn" class="btn primary">Opret gruppe (admin)</button>
 
-      <button class="btn primary" onclick="window.location.href='join.html';">
-        Join gruppe
-      </button>
-
-      <button class="btn" onclick="window.location.href='group.html';">
-        Gå til min gruppe
-      </button>
+      <button id="joinBtn" class="btn primary">Join gruppe via invitation</button>
 
       <p class="small">
-        Sessioner er tidsbegrænsede – perfekt til koncerter, festivaler og byture.
+        Kun gruppen kan se din live-position, og du kan altid forlade gruppen.
       </p>
     </section>
   </main>
+
+  <script src="js/session.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = fmbGetParams();
+      const nick = params.get("nick") || "";
+
+      document.getElementById("createBtn")?.addEventListener("click", () => {
+        fmbNavigate("create.html", { nick });
+      });
+
+      document.getElementById("joinBtn")?.addEventListener("click", () => {
+        fmbNavigate("join.html", { nick });
+      });
+    });
+  </script>
 </body>
 </html>

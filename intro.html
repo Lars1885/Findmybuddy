@@ -26,16 +26,16 @@
     </section>
   </main>
 
+  <script src="js/session.js"></script>
   <script>
-    const INTRO_DONE_KEY = "fmb_intro_done";
-
     document.addEventListener("DOMContentLoaded", () => {
       const introContinueBtn = document.getElementById("introContinueBtn");
       if (!introContinueBtn) return;
+      const params = fmbGetParams();
+      const nick = params.get("nick") || "";
 
       introContinueBtn.addEventListener("click", () => {
-        localStorage.setItem(INTRO_DONE_KEY, "1");
-        window.location.href = "menu.html";
+        fmbNavigate("menu.html", { nick });
       });
     });
   </script>
