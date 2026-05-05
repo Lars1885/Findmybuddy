@@ -1,6 +1,4 @@
 // js/create.js
-const GROUP_KEY = "fmb_group_code";
-
 function generateGroupCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
@@ -14,13 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const createBtn = document.getElementById("createGroupBtn");
   if (!createBtn) return;
 
+  const params = fmbGetParams();
+  const nick = params.get("nick") || "Anonym";
+
   createBtn.addEventListener("click", () => {
     const code = generateGroupCode();
-
-    // Gem evt. lokalt
-    localStorage.setItem(GROUP_KEY, code);
-
-    // Gå til gruppesiden med koden i URL'en
-    window.location.href = `group.html?code=${encodeURIComponent(code)}`;
+    fmbNavigate("group.html", { code, role: "admin", nick });
   });
 });

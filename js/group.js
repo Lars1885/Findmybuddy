@@ -1,47 +1,43 @@
 // js/group.js
-const GROUP_KEY = "fmb_group_code";
-
 function getCodeFromUrl() {
-  const params = new URLSearchParams(window.location.search);
+  const params = fmbGetParams();
   const c = params.get("code");
   if (c) return c.toUpperCase();
-  return null;
+  return "";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   const codeEl = document.getElementById("groupCode");
+  const roleEl = document.getElementById("groupRole");
+  const nickEl = document.getElementById("groupNick");
   const arrowBtn = document.getElementById("openArrowBtn");
   const photoBtn = document.getElementById("openPhotoBtn");
+  const leaveBtn = document.getElementById("leaveGroupBtn");
 
-  // Prøv først at læse koden fra URL'en
-  let code = getCodeFromUrl();
+  const params = fmbGetParams();
+  const code = getCodeFromUrl();
+  const role = params.get("role") || "member";
+  const nick = params.get("nick") || "Anonym";
 
-  // Hvis der ikke er kode i URL, så prøv localStorage
-  if (!code) {
-    code = localStorage.getItem(GROUP_KEY) || "";
-  }
+  if (codeEl) codeEl.textContent = code || "— ingen kode fundet —";
+  if (roleEl) roleEl.textContent = role === "admin" ? "Admin" : "Medlem";
+  if (nickEl) nickEl.textContent = nick;
 
-  // Vis noget, så vi VED scriptet kører
-  if (codeEl) {
-    codeEl.textContent = code || "— ingen kode fundet —";
-  }
-
-  // Hvis vi har en kode, så gem den lokalt
-  if (code) {
-    localStorage.setItem(GROUP_KEY, code);
-  }
-
-  // Knap til pil-siden
   if (arrowBtn) {
     arrowBtn.addEventListener("click", () => {
-      window.location.href = "arrow.html";
+      fmbNavigate("arrow.html", { code, nick });
     });
   }
 
-  // Knap til billed-siden
   if (photoBtn) {
     photoBtn.addEventListener("click", () => {
-      window.location.href = "photo.html";
+      fmbNavigate("photo.html", { code, nick });
+    });
+  }
+
+  if (leaveBtn) {
+    leaveBtn.addEventListener("click", () => {
+      fmbNavigate("menu.html", { nick });
     });
   }
 });

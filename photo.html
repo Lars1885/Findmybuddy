@@ -16,21 +16,14 @@
   <section class="card">
     <h2>Gruppens billeder</h2>
     <p class="small">
-      Tag billeder direkte på telefonen – de gemmes lokalt i denne gruppe.
+      Tag billeder direkte på telefonen – de gemmes kun lokalt i din browser.
     </p>
 
     <div class="photo-actions">
-      <!-- Label ser ud som en knap, men åbner file-input -->
-      <label for="photoInput" class="btn primary">
-        Tag / vælg billede
-      </label>
-
-      <button id="backToGroupBtn" class="btn secondary">
-        Tilbage til gruppe
-      </button>
+      <label for="photoInput" class="btn primary">Tag / vælg billede</label>
+      <button id="backToGroupBtn" class="btn secondary">Tilbage til gruppe</button>
     </div>
 
-    <!-- Skjult file input (kamera / galleri) -->
     <input
       id="photoInput"
       type="file"
@@ -41,13 +34,11 @@
 
     <div id="photoInfo" class="small"></div>
 
-    <div id="photoGrid" class="photo-grid">
-      <!-- Billeder indsættes med JS -->
-    </div>
+    <div id="photoGrid" class="photo-grid"></div>
   </section>
 </main>
 
+<script src="js/session.js"></script>
 <script src="js/photo.js"></script>
 </body>
 </html>
-

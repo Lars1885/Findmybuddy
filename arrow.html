@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <title>Find My Buddy – Pil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="top-bar">
+  <button class="back-btn" id="backToGroupBtn">←</button>
+  <h1>Find din makker</h1>
+</header>
+
+<main class="screen">
+  <section class="card center">
+    <p id="targetName" class="small">Nærmeste makker</p>
+
+    <div class="arrow-wrapper">
+      <div id="arrow" class="arrow"></div>
+    </div>
+
+    <p id="distanceDisplay" class="distance">– m</p>
+    <p id="mapStatus" class="status">Starter…</p>
+  </section>
+</main>
+
+<script src="js/session.js"></script>
+<script src="js/map.js"></script>
+</body>
+</html>

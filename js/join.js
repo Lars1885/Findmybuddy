@@ -1,10 +1,11 @@
 // js/join.js
-const GROUP_KEY = "fmb_group_code";
-
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("groupCodeInput");
   const btn = document.getElementById("joinBtn");
   if (!input || !btn) return;
+
+  const params = fmbGetParams();
+  const nick = params.get("nick") || "Anonym";
 
   btn.addEventListener("click", () => {
     const code = input.value.trim().toUpperCase();
@@ -14,10 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Gem evt. lokalt
-    localStorage.setItem(GROUP_KEY, code);
-
-    // Gå til gruppesiden med koden i URL'en
-    window.location.href = `group.html?code=${encodeURIComponent(code)}`;
+    fmbNavigate("group.html", { code, role: "member", nick });
   });
 });
